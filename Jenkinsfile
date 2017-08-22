@@ -33,7 +33,7 @@ node {
   try {
 
     stage ('Configure files') {
-      sh('test.sh')
+      sh('./test.sh')
     }
 
     stage ('Build docker') {
