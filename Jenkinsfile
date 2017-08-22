@@ -29,6 +29,10 @@ node {
 
   try {
 
+    stage ('Configure files') {
+      sh('test.sh')
+    }
+
     stage ('Build docker') {
       sh("docker -H :2375 build --no-cache -t ${imageTag} .")
       sh("docker -H :2375 build --no-cache -t ${dockerUsername}/${appName}:latest .")

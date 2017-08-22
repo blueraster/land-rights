@@ -40,19 +40,20 @@ def json2ogr(in_json):
         raise ValueError('input json must contain features property')
 
     # why does peat keep returning m and z values??? maybe use carto version
-    test = in_json['features'][0]['geometry']
-    if (test['type'] == 'Polygon' and len(test['coordinates'][0][0]) > 2 or
-            test['type'] == 'MultiPolygon' and
-            len(test['coordinates'][0][0][0]) > 2):
-        for f in in_json['features']:
-            coords = f['geometry']['coordinates']
-            if test['type'] == 'Polygon':
-                f['geometry']['coordinates'] = [[coord[:2] for coord in ring]
-                                                for ring in coords]
-            elif test['type'] == 'MultiPolygon':
-                f['geometry']['coordinates'] = [[[coord[:2] for coord in ring]
-                                                for ring in poly]
-                                                for poly in coords]
+    if len(in_json['features']) > 0:
+        test = in_json['features'][0]['geometry']
+        if (test['type'] == 'Polygon' and len(test['coordinates'][0][0]) > 2 or
+                test['type'] == 'MultiPolygon' and
+                len(test['coordinates'][0][0][0]) > 2):
+            for f in in_json['features']:
+                coords = f['geometry']['coordinates']
+                if test['type'] == 'Polygon':
+                    f['geometry']['coordinates'] = [[coord[:2] for coord in
+                                                     ring] for ring in coords]
+                elif test['type'] == 'MultiPolygon':
+                    f['geometry']['coordinates'] = [[[coord[:2] for coord in
+                                                      ring] for ring in poly]
+                                                    for poly in coords]
 
     for f in in_json['features']:
         f['geometry'] = shape(f['geometry'])
@@ -198,21 +199,22 @@ def dissolve(featureset, field=None):
 
     new_features = []
 
-    if sort_func:
-        features = sorted(featureset['features'], key=sort_func)
-        for key, group in itertools.groupby(features, key=sort_func):
-            properties, geom = zip(*[(f['properties'],
-                                      f['geometry']) for f in group])
-            new_features.append(dict(type='Feature',
-                                     geometry=unary_union(geom),
-                                     properties=properties[0]))
+    if len(featureset['features']) > 0:
+        if sort_func:
+            features = sorted(featureset['features'], key=sort_func)
+            for key, group in itertools.groupby(features, key=sort_func):
+                properties, geoms = zip(*[(f['properties'],
+                                          f['geometry']) for f in group])
+                new_features.append(dict(type='Feature',
+                                         geometry=unary_union(geoms),
+                                         properties=properties[0]))
 
-    else:
-        geom = [f['geometry'] for f in featureset['features']]
-        properties = {}  # TODO: decide which attributes should go in here
-        new_features.append(dict(type='Feature',
-                                 geometry=unary_union(geom),
-                                 properties=properties))
+        else:
+            geoms = [f['geometry'] for f in featureset['features']]
+            properties = {}  # TODO: decide which attributes should go in here
+            new_features.append(dict(type='Feature',
+                                     geometry=unary_union(geoms),
+                                     properties=properties))
 
     new_featureset = dict(type=featureset['type'],
                           features=new_features)

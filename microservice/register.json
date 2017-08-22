@@ -8,53 +8,5 @@
 			"method": "GET",
 			"path": "/api/v1/polyIntersect/hello"
 		}
-	},
-	{
-		"path": "/v1/polyIntersect/plantation-species",
-		"method": "POST",
-		"redirect": {
-			"method": "POST",
-			"path": "/api/v1/polyIntersect/plantation-species"
-		}
-	},
-	{
-		"path": "/v1/polyIntersect/wdpa",
-		"method": "POST",
-		"redirect": {
-			"method": "POST",
-			"path": "/api/v1/polyIntersect/wdpa"
-		}
-	},
-	{
-		"path": "/v1/polyIntersect/land-rights",
-		"method": "POST",
-		"redirect": {
-			"method": "POST",
-			"path": "/api/v1/polyIntersect/land-rights"
-		}
-	},
-	{
-		"path": "/v1/polyIntersect/aze",
-		"method": "POST",
-		"redirect": {
-			"method": "POST",
-			"path": "/api/v1/polyIntersect/aze"
-		}
-	},
-	{
-		"path": "/v1/polyIntersect/ifl",
-		"method": "POST",
-		"redirect": {
-			"method": "POST",
-			"path": "/api/v1/polyIntersect/ifl"
-		}
-	},
-	{
-		"path": "/v1/polyIntersect/peat",
-		"method": "POST",
-		"redirect": {
-			"method": "POST",
-			"path": "/api/v1/polyIntersect/peat"
-		}
 	}]
 }
