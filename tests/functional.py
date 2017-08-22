@@ -32,6 +32,7 @@ def run_request(url):
     payload = {}
     if endpoint == 'land-rights':
         payload['user_json'] = LANDRIGHTS_TEST
+        # payload['user_json'] = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[102.65625, -0.11535636737818807], [102.32666015625, -0.17578097424708533], [102.5628662109375, -0.41198375451568836], [102.68920898437499, -0.21972602392080884], [102.65625, -0.11535636737818807]]]}}]}"
     elif endpoint == 'aze':
         payload['user_json'] = AZE_TEST
     else:
