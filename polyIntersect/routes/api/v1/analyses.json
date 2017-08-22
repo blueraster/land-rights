@@ -32,7 +32,7 @@
 	        	"intersection-by-loc", "project-intersection-by-loc",
 	        	"{unit}"],
 	        "area-percent": ["get_intersect_area_percent",
-	        	"intersection-by-loc", "project-intersection-by-loc",
+	        	"area", "project-intersection-by-loc",
 	        	"project-aoi"],
 	        "project-aoi-all-locs": ["dissolve", "project-aoi"],
 	        "intersection-all-locs": ["dissolve",
@@ -43,9 +43,9 @@
 	        	"intersection-all-locs", "project-intersection-all-locs",
 	        	"{unit}"],
 	        "area-percent-all": ["get_intersect_area_percent",
-	        	"intersection-all-locs", "project-intersection-all-locs",
+	        	"area-all", "project-intersection-all-locs",
 	        	"project-aoi-all-locs"]
 		},
-		"outputs": ["intersection-by-loc", "intersection-all-locs"]
+		"outputs": ["area-percent", "area-percent-all"]
 	}
 }

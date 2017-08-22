@@ -57,6 +57,9 @@ def json2ogr(in_json):
     for f in in_json['features']:
         f['geometry'] = shape(f['geometry'])
 
+    for i in range(len(in_json['features'])):
+        in_json['features'][i]['properties']['id'] = i
+
     return in_json
 
 
@@ -200,15 +203,16 @@ def dissolve(featureset, field=None):
         for key, group in itertools.groupby(features, key=sort_func):
             properties, geom = zip(*[(f['properties'],
                                       f['geometry']) for f in group])
-            new_features.append({'geometry': unary_union(geom),
-                                 'properties': properties[0]})
+            new_features.append(dict(type='Feature',
+                                     geometry=unary_union(geom),
+                                     properties=properties[0]))
 
     else:
         geom = [f['geometry'] for f in featureset['features']]
         properties = {}  # TODO: decide which attributes should go in here
-        new_features.append({'type': 'Feature',
-                             'geometry': unary_union(geom),
-                             'properties': properties})
+        new_features.append(dict(type='Feature',
+                                 geometry=unary_union(geom),
+                                 properties=properties))
 
     new_featureset = dict(type=featureset['type'],
                           features=new_features)
@@ -237,6 +241,7 @@ def index_featureset(featureset):
 def intersect(featureset1, featureset2):
     '''
     '''
+
     index = index_featureset(featureset2)
 
     new_features = []
@@ -369,16 +374,25 @@ def get_intersect_area(intersection, intersection_proj, unit='hectare'):
     value in the category field. If not, there must be one feature total in
     the intersected featureset
     '''
-    # if not validate_featureset(intersection, category):
-    #     return 0
 
     unit_conversions = {'meter': 1, 'kilometer': 1000, 'hectare': 10000}
     if unit not in unit_conversions.keys():
         raise ValueError('Invalid unit')
 
+    new_features = []
     for f, p in zip(intersection['features'], intersection_proj['features']):
-        f['properties']['area'] = p['geometry'].area / unit_conversions[unit]
-    return 'TESTING'
+        new_feat = dict(type='Feature',
+                        geometry=f['geometry'],
+                        properties=f['properties'])
+        new_feat['properties']['area'] = (p['geometry'].area /
+                                          unit_conversions[unit])
+        new_features.append(new_feat)
+
+    new_featureset = dict(type=intersection['type'],
+                          features=new_features)
+    if 'crs' in intersection.keys():
+        new_featureset['crs'] = intersection['crs']
+    return new_featureset
 
     # if category:
     #     area_overlap = {f['properties'][category]: f['properties']['area']
@@ -399,14 +413,23 @@ def get_intersect_area_percent(intersection, intersection_proj, aoi_proj):
     value in the category field. If not, there must be one feature total in
     the intersected featureset
     '''
-    # if not validate_featureset(intersection, category):
-    #     return 0
 
+    new_features = []
     for f, p in zip(intersection['features'], intersection_proj['features']):
-        i = f['properties']['id']
+        new_feat = dict(type='Feature',
+                        geometry=f['geometry'],
+                        properties=f['properties'])
+        i = f['properties']['id'] if 'id' in f['properties'].keys() else 0
         aoi_area = aoi_proj['features'][i]['geometry'].area
-        f['properties']['area-percent'] = p['geometry'].area * 100. / aoi_area
-    return 'TESTING'
+        new_feat['properties']['area-percent'] = (p['geometry'].area * 100. /
+                                                  aoi_area)
+        new_features.append(new_feat)
+
+    new_featureset = dict(type=intersection['type'],
+                          features=new_features)
+    if 'crs' in intersection.keys():
+        new_featureset['crs'] = intersection['crs']
+    return new_featureset
 
     # if category:
     #     pct_overlap = {f['properties'][category]:
