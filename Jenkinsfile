@@ -25,7 +25,10 @@ node {
   currentBuild.result = "SUCCESS"
 
   checkout scm
-  properties([pipelineTriggers([[$class: 'GitHubPushTrigger']])])
+  properties([
+    pipelineTriggers([]),
+    parameters([string(name: 'ANALYSIS', defaultValue: 'area-percentarea-both')])
+  ])
 
   try {
 
