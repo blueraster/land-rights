@@ -60,8 +60,8 @@ def run_request(url):
 
 if __name__ == '__main__':
     global endpoint
-    # endpoint = sys.argv[1]
+    endpoint = sys.argv[1]
     test_hello()
     # test_local()
-    # test_control_tower()
+    test_control_tower()
     # test_brazil_biomes_control_tower_remote()

@@ -64,8 +64,6 @@ def execute_model(analysis, dataset, user_json, unit):
         user_json = json.loads(user_json)
     if user_json['type'] != 'FeatureCollection':
         raise ValueError('User json must be a feature collection')
-    for i in range(len(user_json['features'])):
-        user_json['features'][i]['properties']['id'] = i
 
     # read config files
     with open(path.join(path.dirname(__file__), 'analyses.json')) as f:
