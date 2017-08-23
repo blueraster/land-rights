@@ -120,7 +120,8 @@ def execute_model(analysis, dataset, user_json, unit):
     return response
 
 
-@endpoints.route('/hello', strict_slashes=False, methods=['GET', 'POST'])
+@endpoints.route('/ANALYSIS_KEY/hello',
+                 strict_slashes=False, methods=['GET', 'POST'])
 def hello():
     request.json
     data = dict(name='hello adnan')
