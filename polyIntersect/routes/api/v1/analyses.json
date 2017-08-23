@@ -1,51 +1,13 @@
 {
-	"area-percentarea-single": {
+	"geometry-by-location": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-			"dissolve-aoi": ["dissolve", "aoi"],
-	        "reference_data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}"],
-	        "dissolve-data": ["dissolve", "reference_data"],
-	        "intersection": ["intersect", "dissolve-aoi",
-	        	"dissolve-data"],
-	        "project-aoi": ["project_features", "dissolve-aoi"],
-	        "project-intersection": ["project_features", "intersection"],
-	        "area": ["get_intersect_area",
-	        	"intersection", "project-intersection", "{unit}"],
-	        "area-percent": ["get_intersect_area_percent",
-	        	"intersection", "project-intersection", "project-aoi"]
+	        "dissolve-data": ["dissolve", "reference-data"],
+	        "geojson": ["intersect", "aoi",
+	        	"dissolve-data"]
 		},
-		"outputs": ["intersection"]
-	},
-	"area-percentarea-both": {
-		"graph": {
-			"aoi": ["geojson", "{user_json}"],
-	        "reference_data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
-	        	"{out_fields}"],
-	        "dissolve-data": ["dissolve", "reference_data"],
-	        "intersection-by-loc": ["intersect", "aoi",
-	        	"dissolve-data"],
-	        "project-aoi": ["project_features", "aoi"],
-	        "project-intersection-by-loc": ["project_features",
-	        	"intersection-by-loc"],
-	        "area": ["get_intersect_area",
-	        	"intersection-by-loc", "project-intersection-by-loc",
-	        	"{unit}"],
-	        "area-percent": ["get_intersect_area_percent",
-	        	"area", "project-intersection-by-loc",
-	        	"project-aoi"],
-	        "project-aoi-all-locs": ["dissolve", "project-aoi"],
-	        "intersection-all-locs": ["dissolve",
-	        	"intersection-by-loc"],
-	        "project-intersection-all-locs": ["dissolve",
-	        	"project-intersection-by-loc"],
-	        "area-all": ["get_intersect_area",
-	        	"intersection-all-locs", "project-intersection-all-locs",
-	        	"{unit}"],
-	        "area-percent-all": ["get_intersect_area_percent",
-	        	"area-all", "project-intersection-all-locs",
-	        	"project-aoi-all-locs"]
-		},
-		"outputs": ["area-percent", "area-percent-all"]
+		"outputs": ["geojson"]
 	}
 }

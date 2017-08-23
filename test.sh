@@ -15,16 +15,19 @@ router_template=$(<endpoint_template.txt)
 declare -A ANALYSES
 echo $ANALYSIS
 
+sed -i "s/ANALYSIS_KEY/$ANALYSIS/g" $register_file
+sed -i "s/ANALYSIS_KEY/$ANALYSIS/g" $router_file
+
 # loop through datasets, adding a view and registration entry for each
 for dataset in ${!ANALYSES[$ANALYSIS]}; do
 	echo $dataset
 
 	# update register json
-	register_addition=$(echo $register_template | sed "s/DATASET/${dataset}/g")
+	register_addition=$(echo $register_template | sed "s/DATASET/${dataset}/g" | sed "s/ANALYSIS_KEY/${ANALYSIS}/g")
 	sed -i "s@}]@${register_addition}@" $register_file
 
 	# update router file
 	dataset_clean=$(echo $dataset | sed "s/-//g")
-	router_addition=$(echo $router_template | sed "s/DATASET/${dataset}/g" | sed "s/FUNCTION/${dataset_clean}/g" | sed "s/ANALYSIS/${ANALYSIS}/g")
+	router_addition=$(echo $router_template | sed "s/DATASET/${dataset}/g" | sed "s/FUNCTION/${dataset_clean}/g" | sed "s/ANALYSIS_KEY/${ANALYSIS}/g")
 	sed -i "$ a ${router_addition}" $router_file
 done
