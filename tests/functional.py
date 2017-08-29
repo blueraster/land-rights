@@ -54,19 +54,13 @@ def run_request(url):
     try:
         response = result.json()
         assert isinstance(response, dict)
-        if analysis == 'count-species-dissolved':
-            for count in response.values():
-                assert isinstance(count, int)
-            print(response)
-        else:
-            for fc in response.values():
-                assert json.loads(fc)['type'] == 'FeatureCollection'
-                assert 'features' in json.loads(fc).keys()
-                for f in json.loads(fc)['features']:
-                    assert f['type'] == 'Feature'
-                    assert 'geometry' in f.keys()
-                json.dump(json.loads(fc), open('output.json', 'w'))
-            print(response.keys())
+        if "intersect-geom" in response.values():
+            fc = json.loads(response['intersect-geom'])
+            assert fc['type'] == 'FeatureCollection'
+            json.dump(fc, open('output.json', 'w'))
+        for key, val in response.items():
+            if key != "intersect-geom":
+                print((key, val))
     except Exception as e:
         print(str(e))
         print(result.content)

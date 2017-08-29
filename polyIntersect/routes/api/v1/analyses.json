@@ -5,9 +5,25 @@
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
-	        "geojson": ["intersect", "aoi",
-	        	"dissolve-data"]
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data"]
 		},
-		"outputs": ["geojson"]
+		"outputs": ["intersect-geom"]
+	},
+	"dissolved-area-areapct": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        	"{out_fields}"],
+	        "dissolve-aoi": ["dissolve", "aoi"],
+	        "dissolve-data": ["dissolve", "reference-data"],
+	        "intersect-geom": ["intersect", "dissolve-aoi", "dissolve-data"],
+	        "aoi-prj": ["project_features", "dissolve-aoi"],
+	        "intersect-geom-prj": ["project_features", "intersect-geom"],
+	        "aoi-area": ["get_area", "aoi-prj"],
+	        "intersect-area": ["get_area", "intersect-geom-prj"],
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj",
+	        	"aoi-area"]
+		},
+		"outputs": ["intersect-geom", "aoi-area", "intersect-area", "intersect-areapct"]
 	}
 }

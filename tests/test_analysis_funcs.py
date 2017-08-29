@@ -12,9 +12,8 @@ from polyIntersect.micro_functions.poly_intersect import intersect
 from polyIntersect.micro_functions.poly_intersect import index_featureset
 from polyIntersect.micro_functions.poly_intersect import buffer_to_dist
 from polyIntersect.micro_functions.poly_intersect import project_features
-from polyIntersect.micro_functions.poly_intersect import get_intersect_area
-from polyIntersect.micro_functions.poly_intersect import get_intersect_area_percent
-from polyIntersect.micro_functions.poly_intersect import get_intersect_z_scores
+from polyIntersect.micro_functions.poly_intersect import get_area
+from polyIntersect.micro_functions.poly_intersect import get_area_percent
 
 
 from shapely.geometry.polygon import Polygon
@@ -151,14 +150,12 @@ def test_area_percent_no_categories():
     featureset1_projected = project_features(featureset1)
     result_projected = project_features(result_featureset)
 
-    get_intersect_area_percent(result_featureset,
-                               result_projected,
-                               featureset1_projected)
+    aoi_area = get_area(featureset1_projected)
+    area_pct = get_area_percent(result_projected, aoi_area)
 
-    props = result_featureset['features'][0]['properties']
-    assert ('area-percent' in props.keys())
-    assert isinstance(props['area-percent'], float)
-    assert props['area-percent'] > 0 and props['area-percent'] <= 100
+    assert area_pct
+    assert isinstance(area_pct, float)
+    assert area_pct > 0 and area_pct <=100
 
 
 def test_area_percent_with_categories():
@@ -175,14 +172,16 @@ def test_area_percent_with_categories():
     featureset1_projected = project_features(featureset1)
     result_projected = project_features(result_featureset)
 
-    get_intersect_area_percent(result_featureset,
-                               result_projected,
-                               featureset1_projected)
+    aoi_area = get_area(featureset1_projected, 'id')
+    area_pct = get_area_percent(result_projected, aoi_area, 'value', 'id')
 
-    props = result_featureset['features'][0]['properties']
-    assert ('area-percent' in props.keys())
-    assert isinstance(props['area-percent'], float)
-    assert props['area-percent'] > 0 and props['area-percent'] <= 100
+    assert area_pct
+    assert isinstance(area_pct, dict)
+    for area_pct_cats in area_pct.values():
+        assert isinstance(area_pct_cats, dict)
+        for val in area_pct_cats.values():
+            assert isinstance(val, float)
+            assert val > 0 and val <=100
 
 
 def test_json2ogr():
