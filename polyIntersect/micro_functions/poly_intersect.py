@@ -19,7 +19,7 @@ from shapely.ops import unary_union, transform
 
 __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_features',
            'buffer_to_dist', 'get_area', 'get_area_percent', 'esri_server2ogr',
-           'get_species_count']
+           'get_species_count', 'esri_server2histo', 'cartodb2ogr']
 
 HA_CONVERSION = 10000
 
@@ -146,6 +146,33 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields):
     # req.raise_for_status()
 
     # return json2ogr(req.text)
+
+
+def esri_server2histo(layer_endpoint, aoi, field=None):
+    url = layer_endpoint.replace('?f=pjson', '') + '/computeHistograms'
+
+    params = {}
+    params['f'] = 'json'
+    params['geometryType'] = 'esriGeometryPolygon'
+
+    if field:
+        histograms = {}
+        for f in json.loads(aoi)['features']:
+            location_id = f['properties'][field]
+            params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                      'spatialReference': {'wkid': 4326}})
+            req = requests.post(url, data=params)
+            req.raise_for_status()
+            # raise ValueError(url)
+            histograms[location_id] = req.json()['histograms'][0]['counts']
+    else:
+        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                  'spatialReference': {'wkid': 4326}})
+        req = requests.post(url, data=params)
+        req.raise_for_status()
+        histograms = req.json()['histograms'][0]['counts']
+
+    return histograms
 
 
 @lru_cache(5)
@@ -346,27 +373,25 @@ def buffer_to_dist(featureset, distance):
 
 # ------------------------- Calculation Functions --------------------------
 
-# def get_aoi_area(featureset):
-#     return np.sum([f['geometry'].area for f in featureset['features']])
-
-
-def validate_featureset(featureset, field=None):
+def validate_featureset(featureset, fields=[None]):
     '''
     '''
-    if field:
+    valid_fields = [f for f in fields if f]
+    for field in valid_fields:
         for f in featureset['features']:
             if field not in f['properties'].keys():
                 raise ValueError('Featureset with category field must ' +
                                  'have category field as a property of ' +
                                  'every feature')
-    elif len(featureset['features']) > 1:
-        raise ValueError('Featureset with multiple features must be ' +
-                         'dissolved or have a category field in order to ' +
-                         'calculate statistics')
+    if len(valid_fields) == 0:
+        if len(featureset['features']) > 1:
+            raise ValueError('Featureset with multiple features must ' +
+                             'be dissolved or have a category field in ' +
+                             'order to calculate statistics')
 
 
 def get_area(featureset, field=None):
-    validate_featureset(featureset, field)
+    validate_featureset(featureset, [field])
 
     if field:
         area = {}
@@ -377,8 +402,8 @@ def get_area(featureset, field=None):
     return area
 
 
-def get_area_percent(featureset, aoi_area, int_field=None, aoi_field=None):
-    validate_featureset(featureset, int_field)
+def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
+    validate_featureset(featureset, [int_field, aoi_field])
 
     if aoi_field and int_field:
         area_pct = {}
@@ -388,23 +413,29 @@ def get_area_percent(featureset, aoi_area, int_field=None, aoi_field=None):
                       f['properties'][aoi_field] == aoi]:
                 int_category = f['properties'][int_field]
                 area_pct[aoi][int_category] = (f['geometry'].area /
-                                               HA_CONVERSION / area)
+                                               HA_CONVERSION / area * 100)
     elif aoi_field:
         area_pct = {}
         for aoi, area in aoi_area.items():
             area_pct[aoi] = (featureset['features'][0]['geometry'].area /
-                             HA_CONVERSION / area)
+                             HA_CONVERSION / area * 100)
     elif int_field:
         area_pct = {}
         for f in featureset['features']:
             int_category = f['properties'][int_field]
             area_pct[int_category] = (f['geometry'].area / HA_CONVERSION /
-                                      aoi_area)
+                                      aoi_area * 100)
     else:
         area_pct = (featureset['features'][0]['geometry'].area /
-                    HA_CONVERSION / aoi_area)
+                    HA_CONVERSION / aoi_area * 100)
 
     return area_pct
+
+
+def get_soy_at_forest_density(histograms, forest_density=30):
+    # if isinstance(histograms, dict):
+    #    histograms_fd = {location_id: histogram[]}
+    return None
 
 
 # def get_intersect_area(intersection, intersection_proj, unit='hectare'):

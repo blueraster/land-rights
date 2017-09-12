@@ -9,7 +9,39 @@
 		},
 		"outputs": ["intersect-geom"]
 	},
-	"dissolved-area-areapct": {
+	"area-and-geom-by-location": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        	"{out_fields}"],
+	        "dissolve-data": ["dissolve", "reference-data"],
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
+	        "aoi-prj": ["project_features", "aoi"],
+	        "intersect-geom-prj": ["project_features", "intersect-geom"],
+	        "aoi-area": ["get_area", "aoi-prj", "{id_field}"],
+	        "intersect-area": ["get_area", "intersect-geom-prj"],
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area",
+	        	"{id_field}"]
+		},
+		"outputs": ["intersect-geom", "intersect-areapct"]
+	},
+	"area-by-location": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        	"{out_fields}"],
+	        "dissolve-data": ["dissolve", "reference-data"],
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
+	        "aoi-prj": ["project_features", "aoi"],
+	        "intersect-geom-prj": ["project_features", "intersect-geom"],
+	        "aoi-area": ["get_area", "aoi-prj", "{id_field}"],
+	        "intersect-area": ["get_area", "intersect-geom-prj"],
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area",
+	        	"{id_field}"]
+		},
+		"outputs": ["intersect-areapct"]
+	},
+	"area-and-geom-dissolved": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -25,5 +57,17 @@
 	        	"aoi-area"]
 		},
 		"outputs": ["intersect-geom", "aoi-area", "intersect-area", "intersect-areapct"]
+	},
+	"histo-by-location": {
+		"graph": {
+			"histograms": ["{gfw_dataset}", "{layer_url}", "{user_json}", "{id_field}"]
+		},
+		"outputs": ["histograms"]
+	},
+	"histo-dissolved": {
+		"graph": {
+			"histogram": ["{gfw_dataset}", "{layer_url}", "{user_json}"]
+		},
+		"outputs": ["histogram"]
 	}
 }

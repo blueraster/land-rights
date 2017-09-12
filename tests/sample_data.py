@@ -67,3 +67,6 @@ with open(path.join(fixtures, 'AZE_test.geojson')) as f:
 
 with open(path.join(fixtures, 'land-rights_test.geojson')) as f:
     LANDRIGHTS_TEST = "".join(f.read().split())
+
+with open(path.join(fixtures, 'soy_brazil.geojson')) as f:
+    SOY_BRAZIL = "".join(f.read().split())
