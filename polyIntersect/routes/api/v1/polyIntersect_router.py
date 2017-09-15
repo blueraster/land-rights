@@ -22,7 +22,8 @@ def create_dag_from_json(graphJson):
                               '[<func_name>, <func_arg1>, <func_arg2>]'))
 
         # special_funcs = ['geojson', 'esri:server', 'gfw:pro']
-        special_funcs = ['geojson', 'esri:server', 'cartodb']
+        special_funcs = ['geojson', 'esri:server', 'esri:imageserver',
+                         'cartodb']
 
         func_name = v[0]
         is_valid = analysis_funcs.is_valid(func_name)
@@ -39,6 +40,8 @@ def create_dag_from_json(graphJson):
             graph[k] = tuple([analysis_funcs.json2ogr] + func_args)
         elif func_name == 'esri:server':
             graph[k] = tuple([analysis_funcs.esri_server2ogr] + func_args)
+        elif func_name == 'esri:imageserver':
+            graph[k] = tuple([analysis_funcs.esri_server2histo] + func_args)
         elif func_name == 'cartodb':
             graph[k] = tuple([analysis_funcs.cartodb2ogr] + func_args)
         else:
@@ -58,7 +61,7 @@ def compute(graph, outputs):
     return final_output
 
 
-def execute_model(analysis, dataset, user_json, unit):
+def execute_model(analysis, dataset, user_json, id_field):
     # validate user json and add unique id
     if isinstance(user_json, str):
         user_json = json.loads(user_json)
@@ -93,7 +96,10 @@ def execute_model(analysis, dataset, user_json, unit):
     if '?' in layer_url:
         layer_url = layer_url[:layer_url.find('?')]
     if dataset_info['data']['attributes']['provider'] == 'featureservice':
-        gfw_dataset = 'esri:server'
+        if 'ImageServer' in layer_url:
+            gfw_dataset = 'esri:imageserver'
+        else:
+            gfw_dataset = 'esri:server'
     elif dataset_info['data']['attributes']['provider'] == 'cartodb':
         gfw_dataset = 'cartodb'
     else:
@@ -108,7 +114,7 @@ def execute_model(analysis, dataset, user_json, unit):
                            layer_url=layer_url,
                            category=category,
                            field=field,
-                           unit=unit) for val in vals]
+                           id_field=id_field) for val in vals]
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 

@@ -5,6 +5,7 @@ import json
 from sample_data import INDONESIA_USER_POLY
 from sample_data import AZE_TEST
 from sample_data import LANDRIGHTS_TEST
+from sample_data import SOY_BRAZIL
 
 
 def test_hello_local():
@@ -38,12 +39,14 @@ def test_control_tower_remote():
 def run_request(url):
     payload = {}
     if dataset == 'land-rights':
-        payload['user_json'] = LANDRIGHTS_TEST
+        payload['geojson'] = LANDRIGHTS_TEST
         # payload['user_json'] = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[102.65625, -0.11535636737818807], [102.32666015625, -0.17578097424708533], [102.5628662109375, -0.41198375451568836], [102.68920898437499, -0.21972602392080884], [102.65625, -0.11535636737818807]]]}}]}"
     elif dataset == 'aze':
-        payload['user_json'] = AZE_TEST
+        payload['geojson'] = AZE_TEST
+    elif dataset == 'soy':
+        payload['geojson'] = SOY_BRAZIL
     else:
-        payload['user_json'] = INDONESIA_USER_POLY
+        payload['geojson'] = INDONESIA_USER_POLY
     payload['unit'] = 'hectare'
 
     print(url.format(analysis, dataset))
@@ -54,19 +57,13 @@ def run_request(url):
     try:
         response = result.json()
         assert isinstance(response, dict)
-        if analysis == 'count-species-dissolved':
-            for count in response.values():
-                assert isinstance(count, int)
-            print(response)
-        else:
-            for fc in response.values():
-                assert json.loads(fc)['type'] == 'FeatureCollection'
-                assert 'features' in json.loads(fc).keys()
-                for f in json.loads(fc)['features']:
-                    assert f['type'] == 'Feature'
-                    assert 'geometry' in f.keys()
-                json.dump(json.loads(fc), open('output.json', 'w'))
-            print(response.keys())
+        if "intersect-geom" in response.values():
+            fc = json.loads(response['intersect-geom'])
+            assert fc['type'] == 'FeatureCollection'
+            json.dump(fc, open('output.json', 'w'))
+        for key, val in response.items():
+            if key != "intersect-geom":
+                print('{}: {}'.format(key, val))
     except Exception as e:
         print(str(e))
         print(result.content)
