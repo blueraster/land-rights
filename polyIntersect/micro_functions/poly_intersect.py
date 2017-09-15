@@ -419,8 +419,8 @@ def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
         for f in featureset['features']:
             aoi = f['properties'][aoi_field]
             area = aoi_area[aoi]
-            area_pct[aoi_field] = (f['geometry'].area / HA_CONVERSION / area *
-                                   100)
+            area_pct[aoi] = (f['geometry'].area / HA_CONVERSION / area *
+                             100)
         for aoi in aoi_area.keys():
             if aoi not in area_pct.keys():
                 area_pct[aoi] = 0

@@ -173,7 +173,7 @@ def test_area_percent_with_categories():
     result_projected = project_features(result_featureset)
 
     aoi_area = get_area(featureset1_projected, 'id')
-    area_pct = get_area_percent(result_projected, aoi_area, 'value', 'id')
+    area_pct = get_area_percent(result_projected, aoi_area, 'id', 'value')
 
     assert area_pct
     assert isinstance(area_pct, dict)
