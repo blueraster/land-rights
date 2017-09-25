@@ -19,7 +19,8 @@ from shapely.ops import unary_union, transform
 
 __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_features',
            'buffer_to_dist', 'get_area', 'get_area_percent', 'esri_server2ogr',
-           'get_species_count', 'esri_server2histo', 'cartodb2ogr']
+           'get_species_count', 'esri_server2histo', 'esri_server2count',
+           'cartodb2ogr']
 
 HA_CONVERSION = 10000
 
@@ -148,24 +149,19 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields):
     # return json2ogr(req.text)
 
 
-def esri_server2histo(layer_endpoint, aoi, field=None):
+def esri_server2histo(layer_endpoint, aoi):
     url = layer_endpoint.replace('?f=pjson', '') + '/computeHistograms'
 
     params = {}
     params['f'] = 'json'
     params['geometryType'] = 'esriGeometryPolygon'
+    params['spatialRel'] = 'esriSpatialRelIntersects'
+    params['returnGeometry'] = True
+    params['where'] = '1=1'
 
-    if field:
-        histograms = {}
-        for f in json.loads(aoi)['features']:
-            location_id = f['properties'][field]
-            params['geometry'] = str({'rings': f['geometry']['coordinates'],
-                                      'spatialReference': {'wkid': 4326}})
-            req = requests.post(url, data=params)
-            req.raise_for_status()
-            # raise ValueError(url)
-            histograms[location_id] = req.json()['histograms'][0]['counts']
-    else:
+    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if featureset['features']:
+        f = featureset['features'][0]
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
@@ -173,6 +169,29 @@ def esri_server2histo(layer_endpoint, aoi, field=None):
         histograms = req.json()['histograms'][0]['counts']
 
     return histograms
+
+
+def esri_server2count(layer_endpoint, aoi, where=None):
+    url = layer_endpoint.replace('?f=pjson', '') + '/query'
+
+    params = {}
+    params['f'] = 'json'
+    params['geometryType'] = 'esriGeometryPolygon'
+    params['where'] = where
+    params['spatialRel'] = 'esriSpatialRelIntersects'
+    params['returnCountOnly'] = True
+    params['returnGeometry'] = False
+
+    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if featureset['features']:
+        f = featureset['features'][0]
+        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                  'spatialReference': {'wkid': 4326}})
+        req = requests.post(url, data=params)
+        req.raise_for_status()
+        counts = req.json()['count']
+
+    return counts
 
 
 @lru_cache(5)
@@ -297,6 +316,35 @@ def intersect(featureset1, featureset2):
     return new_featureset
 
 
+def erase(featureset, erase_featureset):
+    '''
+    '''
+
+    index = index_featureset(erase_featureset)
+
+    new_features = []
+
+    for f in featureset['features']:
+        feat = f
+        geom = f['geometry']
+        for fid in list(index.intersection(geom.bounds)):
+            erase_feat = erase_featureset['features'][fid]
+            erase_geom = erase_feat['geometry']
+            if geom.intersects(erase_geom):
+                new_geom = geom.difference(erase_geom)
+                new_feat = dict(properties={**feat['properties']},
+                                geometry=new_geom,
+                                type='Feature')
+                new_features.append(new_feat)
+
+    new_featureset = dict(type=featureset['type'],
+                          features=new_features)
+    if 'crs' in featureset.keys():
+        new_featureset['crs'] = featureset['crs']
+
+    return new_featureset
+
+
 def project_features(featureset, local=True):
     '''
     Transform geometry with a local projection centered at the
@@ -398,7 +446,10 @@ def get_area(featureset, field=None):
         for f in featureset['features']:
             area[f['properties'][field]] = f['geometry'].area / HA_CONVERSION
     else:
-        area = featureset['features'][0]['geometry'].area / HA_CONVERSION
+        if featureset['features']:
+            area = featureset['features'][0]['geometry'].area / HA_CONVERSION
+        else:
+            area = 0
     return area
 
 
@@ -431,19 +482,80 @@ def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
             area_pct[int_category] = (f['geometry'].area / HA_CONVERSION /
                                       aoi_area * 100)
     else:
-        if len(featureset['features']) == 0:
-            area_pct = 0
-        else:
+        if featureset['features']:
             area_pct = (featureset['features'][0]['geometry'].area /
                         HA_CONVERSION / aoi_area * 100)
+        else:
+            area_pct = 0
 
     return area_pct
 
 
-def get_soy_at_forest_density(histograms, forest_density=30):
-    # if isinstance(histograms, dict):
-    #    histograms_fd = {location_id: histogram[]}
-    return None
+def get_soy_on_loss_area(histograms, forest_density=30):
+    '''
+    Returns the sum of soy on tree cover loss for years 2001 through 2014
+    '''
+    density_map = {0: 10, 10: 25, 15: 40, 20: 55,
+                   25: 70, 30: 85, 50: 100, 75: 115}
+    if forest_density not in density_map.keys():
+        raise ValueError('Forest density must be one of the following:\n' +
+                         '  10, 15, 20, 25, 30, 50, 75')
+    year_indices = [range(density_map[forest_density] + i + 1, 130, 15)
+                    for i in range(14)]
+    if isinstance(histograms, dict):
+        soy_area_loss = {location_id: [sum([histogram[i] for i in indices])
+                                       for indices in year_indices]
+                         for location_id, histogram in histograms.items()}
+    else:
+        soy_area_loss = [sum([histograms[i] for i in indices])
+                         for indices in year_indices]
+
+    return soy_area_loss
+
+
+def get_soy_pre2001_area(histograms):
+    '''
+    Returns the sum of soy on tree cover loss, aggregated on years prior to
+    2001
+    '''
+    year_indices = range(10, 130, 15)
+    if isinstance(histograms, dict):
+        soy_area_loss = {location_id: sum([histogram[i]
+                                           for i in year_indices])
+                         for location_id, histogram in histograms.items()}
+    else:
+        soy_area_loss = sum([histograms[i] for i in year_indices])
+
+    return soy_area_loss
+
+
+def get_soy_total_area(histograms):
+    '''
+    Returns total area of soy within the aoi
+    '''
+    if isinstance(histograms, dict):
+        soy_area_total = {location_id: sum(histogram)
+                          for location_id, histogram in histograms.items()}
+    else:
+        soy_area_total = sum(histograms)
+
+    return soy_area_total
+
+
+def get_soy_percent_area(soy_area, aoi_area):
+    '''
+    '''
+    if isinstance(soy_area, dict):
+        soy_area_pct = {location_id:
+                        soy_area[location_id] / aoi_area[location_id]
+                        for location_id in soy_area.keys()}
+    else:
+        if aoi_area > 0:
+            soy_area_pct = soy_area / aoi_area
+        else:
+            soy_area_pct = 0
+
+    return soy_area_pct
 
 
 # def get_intersect_area(intersection, intersection_proj, unit='hectare'):

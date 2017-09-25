@@ -5,6 +5,11 @@ from flask import request, jsonify
 from polyIntersect.routes.api.v1 import endpoints
 import polyIntersect.micro_functions.poly_intersect as analysis_funcs
 import requests
+from datetime import datetime
+
+
+def convert_date(date):
+    return datetime.strptime(date, '%Y-%m-%d').strftime('%#m/%#d/%Y')
 
 
 def create_dag_from_json(graphJson):
@@ -61,12 +66,21 @@ def compute(graph, outputs):
     return final_output
 
 
-def execute_model(analysis, dataset, user_json, id_field):
-    # validate user json and add unique id
+def execute_model(analysis, dataset, user_json, geojson2, period):
+    # validate user json
     if isinstance(user_json, str):
         user_json = json.loads(user_json)
     if user_json['type'] != 'FeatureCollection':
         raise ValueError('User json must be a feature collection')
+
+    # validate optional second user json
+    if geojson2 == '':
+        geojson2 = {'type': 'FeatureCollection', 'features': []}
+    else:
+        if isinstance(geojson2, str):
+            geojson2 = json.loads(geojson2)
+        if geojson2['type'] != 'FeatureCollection':
+            raise ValueError('Second user json must be a feature collection')
 
     # read config files
     with open(path.join(path.dirname(__file__), 'analyses.json')) as f:
@@ -78,43 +92,51 @@ def execute_model(analysis, dataset, user_json, id_field):
     category = datasets[dataset]['category']
     field = datasets[dataset]['field']
     out_fields = ','.join([f for f in [category, field] if f])
+    where_dates = {
+        'start_date': convert_date(period.split(',')[0]) if period else '',
+        'end_date': convert_date(period.split(',')[1]) if period else ''
+    }
+    where = datasets[dataset]['where'].format(**where_dates)
 
     # get gfw api url for dataset based on its id
     dataset_id = datasets[dataset]['id']
-    host = 'https://staging-api.globalforestwatch.org/v1'
+    host = 'https://production-api.globalforestwatch.org/v1'
     dataset_endpoint = 'dataset/{}'.format(dataset_id)
     dataset_url = path.join(host, dataset_endpoint)
 
     # query gfw api for the layer url
-    try:
-        dataset_info = requests.get(dataset_url).json()
-    except:
-        raise ValueError(requests.get(dataset_url).text)
-    if 'errors' in dataset_info.keys():
-        raise ValueError(dataset_info['errors'])
-    layer_url = dataset_info['data']['attributes']['connectorUrl']
-    if '?' in layer_url:
-        layer_url = layer_url[:layer_url.find('?')]
-    if dataset_info['data']['attributes']['provider'] == 'featureservice':
-        if 'ImageServer' in layer_url:
-            gfw_dataset = 'esri:imageserver'
-        else:
-            gfw_dataset = 'esri:server'
-    elif dataset_info['data']['attributes']['provider'] == 'cartodb':
-        gfw_dataset = 'cartodb'
+    if dataset_url:
+        try:
+            dataset_info = requests.get(dataset_url).json()
+            if 'errors' in dataset_info.keys():
+                raise ValueError(dataset_info['errors'])
+            layer_url = dataset_info['data']['attributes']['connectorUrl']
+            if '?' in layer_url:
+                layer_url = layer_url.split('?')[0]
+            provider = dataset_info['data']['attributes']['provider']
+            if provider == 'featureservice':
+                gfw_dataset = 'esri:server'
+            elif provider == 'cartodb':
+                gfw_dataset = 'cartodb'
+            else:
+                raise ValueError('GFW dataset endpoint not supported')
+        except:
+            raise ValueError(requests.get(dataset_url).text)
     else:
-        raise ValueError('GFW dataset endpoint not supported')
+        layer_url = ''
+        gfw_dataset = ''
 
     # get graph and populate with parameters
     graph = analyses[analysis]['graph']
     for key, vals in graph.items():
         vals = [val.format(user_json=json.dumps(user_json),
+                           user_json_2=json.dumps(geojson2),
                            gfw_dataset=gfw_dataset,
                            out_fields=out_fields,
                            layer_url=layer_url,
                            category=category,
                            field=field,
-                           id_field=id_field) for val in vals]
+                           where=where) for val in vals]
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 

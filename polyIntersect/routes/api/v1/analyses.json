@@ -1,5 +1,5 @@
 {
-	"geometry-by-location": {
+	"geometry": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -9,7 +9,7 @@
 		},
 		"outputs": ["intersect-geom"]
 	},
-	"area-and-geom-by-location": {
+	"area-and-geom": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -18,14 +18,24 @@
 	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
 	        "aoi-prj": ["project_features", "aoi"],
 	        "intersect-geom-prj": ["project_features", "intersect-geom"],
-	        "aoi-area": ["get_area", "aoi-prj", "{id_field}"],
+	        "aoi-area": ["get_area", "aoi-prj"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"],
-	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area",
-	        	"{id_field}"]
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area"]
 		},
-		"outputs": ["intersect-geom", "intersect-areapct"]
+		"outputs": ["intersect-geom", "aoi-area", "intersect-area", "intersect-areapct"]
 	},
-	"area-by-location": {
+	"erase-and-intersect-geom": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+			"reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        	"{out_fields}"],
+	        "dissolve-data": ["dissolve", "reference-data"],
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
+	        "erase-geom": ["erase", "aoi", "dissolve-data"]
+		},
+		"outputs": ["erase-geom", "intersect-geom"]
+	},
+	"area": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -34,12 +44,45 @@
 	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
 	        "aoi-prj": ["project_features", "aoi"],
 	        "intersect-geom-prj": ["project_features", "intersect-geom"],
-	        "aoi-area": ["get_area", "aoi-prj", "{id_field}"],
+	        "aoi-area": ["get_area", "aoi-prj"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"],
-	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area",
-	        	"{id_field}"]
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area"]
 		},
-		"outputs": ["intersect-areapct"]
+		"outputs": ["aoi-area", "intersect-area", "intersect-areapct"]
+	},
+	"intersect-geom": {
+		"graph": {
+			"geom1": ["geojson", "{user_json}"],
+			"geom2": ["geojson", "{user_json_2}"],
+			"intersect-geom": ["intersect", "geom1", "geom2"]
+		},
+		"outputs": ["intersect-geom"]
+	},
+	"intersect-area": {
+		"graph": {
+			"geom1": ["geojson", "{user_json}"],
+			"geom2": ["geojson", "{user_json_2}"],
+			"intersect-geom": ["intersect", "geom1", "geom2"],
+			"intersect-geom-prj": ["project_features", "intersect-geom"],
+			"intersect-area": ["get_area", "intersect-geom-prj"]
+		},
+		"outputs": ["intersect-area"]
+	},
+	"area-dissolved": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        	"{out_fields}"],
+	        "dissolve-aoi": ["dissolve", "aoi"],
+	        "dissolve-data": ["dissolve", "reference-data"],
+	        "intersect-geom": ["intersect", "dissolve-aoi", "dissolve-data"],
+	        "aoi-prj": ["project_features", "dissolve-aoi"],
+	        "intersect-geom-prj": ["project_features", "intersect-geom"],
+	        "aoi-area": ["get_area", "aoi-prj"],
+	        "intersect-area": ["get_area", "intersect-geom-prj"],
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area"]
+		},
+		"outputs": ["aoi-area", "intersect-area", "intersect-areapct"]
 	},
 	"area-and-geom-dissolved": {
 		"graph": {
@@ -58,16 +101,37 @@
 		},
 		"outputs": ["intersect-geom", "aoi-area", "intersect-area", "intersect-areapct"]
 	},
-	"histo-by-location": {
+	"soy-dissolved": {
 		"graph": {
-			"histograms": ["{gfw_dataset}", "{layer_url}", "{user_json}", "{id_field}"]
+			"aoi": ["geojson", "{user_json"],
+			"dissolve-aoi": ["dissolve", "aoi"],
+			"aoi-prj": ["project_features", "dissolve-aoi"],
+			"aoi-area": ["get_area", "aoi-prj"],
+			"histograms": ["esri_server2histo", "{layer_url}", "aoi"],
+			"soy-on-loss-area-by-year": ["get_soy_on_loss_area",
+				"histograms"],
+			"soy-pre2001-area": ["get_soy_pre2001_area", "histograms"],
+			"soy-total-area": ["get_soy_total_area", "histograms"],
+			"soy-pre2001-areapct": ["get_soy_area_percent",
+				"soy-pre2001-area", "aoi-area"],
+			"soy-total-areapct": ["get_soy_area_percent", "soy-total-area",
+				"aoi-area"]
 		},
-		"outputs": ["histograms"]
+		"outputs": ["soy-on-loss-area-by-year", "soy-pre2001-area",
+			"soy-total-area", "soy-pre2001-areapct", "soy-total-areapct"]
 	},
-	"histo-dissolved": {
+	"count": {
 		"graph": {
-			"histogram": ["{gfw_dataset}", "{layer_url}", "{user_json}"]
+			"counts": ["esri_server2count", "{layer_url}", "{user_json}", "{where}"]
 		},
-		"outputs": ["histogram"]
+		"outputs": ["counts"]
+	},
+	"count-dissolved": {
+		"graph": {
+			"aoi": ["geojson", "{user_json"],
+			"dissolve-aoi": ["dissolve", "aoi"],
+			"count": ["esri_server2count", "{layer_url}", "dissolve-aoi", "{where}"]
+		},
+		"outputs": ["count"]
 	}
 }
