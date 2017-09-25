@@ -48,6 +48,8 @@ def run_request(url):
     else:
         payload['geojson'] = INDONESIA_USER_POLY
     payload['unit'] = 'hectare'
+    if dataset == 'modis':
+        payload['period'] = '2014-01-01,2015-12-31'
 
     print(url.format(analysis, dataset))
 

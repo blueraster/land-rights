@@ -1,52 +1,104 @@
 {
 	"brazil-biomes": {
-		"id": "5de0f800-87c8-44b1-8927-724de89bfba5",
+		"id": "d874c75e-ae0c-44d6-8554-ce4661471804",
 		"category": "name",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"global-land-cover": {
 		"id": "",
 		"category": "",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"idn-legal-classifications": {
-		"id": "01522484-3f83-4b6d-872b-03917eae82e3",
+		"id": "da106d6a-86e3-43a1-b9af-f609c6b543d2",
 		"category": "lc_general",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"wdpa": {
-		"id": "9e354df2-073e-45a9-b81d-71a209781cbc",
+		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
 		"category": "",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"plantation-species": {
-		"id": "9a8f7e55-9ec7-4be2-b7c5-3e0864ed4e54",
+		"id": "2577898d-93ea-42ed-9e6d-9571632d3884",
 		"category": "spec_simp",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"land-rights": {
-		"id": "984b1612-8f53-46a8-8c34-a760412bc205", 
+		"id": "ba38e1d9-d026-43b5-8944-23bd71473f56", 
 		"category": "",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"aze": {
-		"id": "e90c0d5e-33b1-445b-9073-c211ecc78035",
+		"id": "6a276d13-a079-4ba4-9c1f-54936b458b33",
 		"category": "sitename_1",
-		"field": "species"
+		"field": "species",
+		"where": "1=1"
 	},
 	"ifl": {
-		"id": "1698b626-176f-4822-aa54-31f22acba136",
+		"id": "79e15345-5c83-4d41-94b4-03f2b2018b77",
 		"category": "",
-		"field": ""
+		"field": "",
+		"where": "1=1"
 	},
 	"peat": {
-		"id": "4c6b1dcf-7b7e-43c1-9022-be4efc895b39",
+		"id": "7d3b46b9-38a2-4223-8c66-882049ebe9b5",
 		"category": "",
-		"field": ""
+		"field": "",
+		"where": "1=1"
+	},
+	"peat-pr": {
+		"id": "d6621f4c-e5e3-4f6c-81d7-6239401fc378",
+		"category": "",
+		"field": "",
+		"where": "1=1"
 	},
 	"soy": {
-		"id": "95bae84c-b73d-40d4-956e-70b7b999cf90",
+		"id": "473eeb03-0202-4808-b46d-34a2c7d070b4",
 		"category": "",
-		"field": ""
+		"field": "",
+		"where": "1=1"
+	},
+	"modis": {
+		"id": "0e46253c-4977-4fab-86f3-cb58945de32d",
+		"category": "",
+		"field": "",
+		"where": "Date >= date '{start_date}' AND Date <= date '{end_date}'"
+	},
+	"plantations": {
+		"id": "f2d7db47-dc12-4a39-9514-1d5eb700c662",
+		"category": "",
+		"field": "",
+		"where": "1=1"
+	},
+	"hnd-forest": {
+		"id": "f26e69a7-077f-4b49-871e-53363f72f9e9",
+		"category": "",
+		"field": "",
+		"where": "1=1"
+	},
+	"afr-forest": {
+		"id": "f2fb1982-68c5-45b9-bcdc-7f80e94e2dc1",
+		"category": "",
+		"field": "",
+		"where": "1=1"
+	},
+	"land-cover": {
+		"id": "",
+		"category": "",
+		"field": "",
+		"where": "1=1"
+	},
+	"no-dataset": {
+		"id": "",
+		"category": "",
+		"field": "",
+		"where": ""
 	}
 }
