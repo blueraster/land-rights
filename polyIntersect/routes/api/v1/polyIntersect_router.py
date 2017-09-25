@@ -148,7 +148,7 @@ def execute_model(analysis, dataset, user_json, geojson2, period):
     return response
 
 
-@endpoints.route('/ANALYSIS_KEY/hello',
+@endpoints.route('/erase-and-intersect-geom/hello',
                  strict_slashes=False, methods=['GET', 'POST'])
 def hello():
     request.json
