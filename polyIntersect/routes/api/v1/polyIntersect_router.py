@@ -66,21 +66,7 @@ def compute(graph, outputs):
     return final_output
 
 
-def execute_model(analysis, dataset, user_json, geojson2, period):
-    # validate user json
-    if isinstance(user_json, str):
-        user_json = json.loads(user_json)
-    if user_json['type'] != 'FeatureCollection':
-        raise ValueError('User json must be a feature collection')
-
-    # validate optional second user json
-    if geojson2 == '':
-        geojson2 = {'type': 'FeatureCollection', 'features': []}
-    else:
-        if isinstance(geojson2, str):
-            geojson2 = json.loads(geojson2)
-        if geojson2['type'] != 'FeatureCollection':
-            raise ValueError('Second user json must be a feature collection')
+def execute_model(analysis, dataset, user_json, geojson2):
 
     # read config files
     with open(path.join(path.dirname(__file__), 'analyses.json')) as f:
@@ -88,25 +74,20 @@ def execute_model(analysis, dataset, user_json, geojson2, period):
     with open(path.join(path.dirname(__file__), 'datasets.json')) as f:
         datasets = json.load(f)
 
-    # get category for dataset
-    category = datasets[dataset]['category']
-    field = datasets[dataset]['field']
+    # get dataset info
+    category = datasets[dataset]['category'] if dataset else ''
+    field = datasets[dataset]['field'] if dataset else ''
     out_fields = ','.join([f for f in [category, field] if f])
-    where_dates = {
-        'start_date': convert_date(period.split(',')[0]) if period else '',
-        'end_date': convert_date(period.split(',')[1]) if period else ''
-    }
-    where = datasets[dataset]['where'].format(**where_dates)
 
     # get gfw api url for dataset based on its id
-    dataset_id = datasets[dataset]['id']
-    host = 'https://production-api.globalforestwatch.org/v1'
-    dataset_endpoint = 'dataset/{}'.format(dataset_id)
-    dataset_url = path.join(host, dataset_endpoint)
+    dataset_id = datasets[dataset]['id'] if dataset else ''
 
     # query gfw api for the layer url
-    if dataset_url:
+    if dataset_id:
         try:
+            host = 'https://production-api.globalforestwatch.org/v1'
+            dataset_endpoint = 'dataset/{}'.format(dataset_id)
+            dataset_url = path.join(host, dataset_endpoint)
             dataset_info = requests.get(dataset_url).json()
             if 'errors' in dataset_info.keys():
                 raise ValueError(dataset_info['errors'])
@@ -120,8 +101,12 @@ def execute_model(analysis, dataset, user_json, geojson2, period):
                 gfw_dataset = 'cartodb'
             else:
                 raise ValueError('GFW dataset endpoint not supported')
-        except:
-            raise ValueError(requests.get(dataset_url).text)
+
+            # REMOVE WHEN FIRES MOVED TO PROD
+            if 'Fires' in layer_url:
+                layer_url = layer_url.replace('gis-gfw', 'gfw-staging')
+        except Exception as e:
+            raise ValueError((str(e), requests.get(dataset_url).text))
     else:
         layer_url = ''
         gfw_dataset = ''
@@ -129,14 +114,13 @@ def execute_model(analysis, dataset, user_json, geojson2, period):
     # get graph and populate with parameters
     graph = analyses[analysis]['graph']
     for key, vals in graph.items():
-        vals = [val.format(user_json=json.dumps(user_json),
-                           user_json_2=json.dumps(geojson2),
+        vals = [val.format(user_json=user_json,
+                           user_json_2=geojson2,
                            gfw_dataset=gfw_dataset,
                            out_fields=out_fields,
                            layer_url=layer_url,
                            category=category,
-                           field=field,
-                           where=where) for val in vals]
+                           field=field) for val in vals]
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 
@@ -148,7 +132,7 @@ def execute_model(analysis, dataset, user_json, geojson2, period):
     return response
 
 
-@endpoints.route('/erase-and-intersect-geom/hello',
+@endpoints.route('/ANALYSIS_KEY/hello',
                  strict_slashes=False, methods=['GET', 'POST'])
 def hello():
     request.json

@@ -4,6 +4,7 @@ import rtree
 import requests
 from parse import search
 from geomet import wkt
+from datetime import datetime, timedelta
 
 from functools import partial, lru_cache
 import pyproj
@@ -19,8 +20,8 @@ from shapely.ops import unary_union, transform
 
 __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_features',
            'buffer_to_dist', 'get_area', 'get_area_percent', 'esri_server2ogr',
-           'get_species_count', 'esri_server2histo', 'esri_server2count',
-           'cartodb2ogr']
+           'get_species_count', 'esri_server2histo', 'esri_count_groupby',
+           'cartodb2ogr', 'esri_count_30days', 'esri_last_instance']
 
 HA_CONVERSION = 10000
 
@@ -171,16 +172,53 @@ def esri_server2histo(layer_endpoint, aoi):
     return histograms
 
 
-def esri_server2count(layer_endpoint, aoi, where=None):
+def esri_count_groupby(layer_endpoint, aoi, count_fields):
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
     params = {}
     params['f'] = 'json'
     params['geometryType'] = 'esriGeometryPolygon'
-    params['where'] = where
+    params['where'] = '1=1'
     params['spatialRel'] = 'esriSpatialRelIntersects'
-    params['returnCountOnly'] = True
     params['returnGeometry'] = False
+    params['groupByFieldsForStatistics'] = count_fields
+    count_fields = count_fields.split(',')
+    params['outStatistics'] = json.dumps([{
+        'statisticType': 'count',
+        'onStatisticField': count_fields[0],
+        'outStatisticFieldName': 'count'
+    }])
+
+    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if featureset['features']:
+        f = featureset['features'][0]
+        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                  'spatialReference': {'wkid': 4326}})
+        req = requests.post(url, data=params)
+        req.raise_for_status()
+        try:
+            counts = {'-'.join([str(item['attributes'][field]) for field in
+                                count_fields]): item['attributes']['count']
+                      for item in req.json()['features']}
+
+            return counts
+        except Exception as e:
+            raise ValueError((str(e), url, params, req.text))
+    return None
+
+
+def esri_count_30days(layer_endpoint, aoi, date_field):
+    url = layer_endpoint.replace('?f=pjson', '') + '/query'
+
+    date = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
+
+    params = {}
+    params['f'] = 'json'
+    params['geometryType'] = 'esriGeometryPolygon'
+    params['where'] = "{} >= date '{}'".format(date_field, date)
+    params['spatialRel'] = 'esriSpatialRelIntersects'
+    params['returnGeometry'] = False
+    params['returnCountOnly'] = True
 
     featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
     if featureset['features']:
@@ -191,7 +229,39 @@ def esri_server2count(layer_endpoint, aoi, where=None):
         req.raise_for_status()
         counts = req.json()['count']
 
-    return counts
+        return counts
+    return None
+
+
+def esri_last_instance(layer_endpoint, aoi, field):
+    url = layer_endpoint.replace('?f=pjson', '') + '/query'
+
+    params = {}
+    params['f'] = 'json'
+    params['geometryType'] = 'esriGeometryPolygon'
+    params['where'] = '1=1'
+    params['spatialRel'] = 'esriSpatialRelIntersects'
+    params['returnGeometry'] = False
+    params['outFields'] = field
+    params['orderByFields'] = field
+    params['returnDistinctValues'] = True
+
+    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if featureset['features']:
+        f = featureset['features'][0]
+        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                  'spatialReference': {'wkid': 4326}})
+        req = requests.post(url, data=params)
+        req.raise_for_status()
+        try:
+            instances = [item['attributes'][field] for item in
+                         req.json()['features']]
+            last_instance = instances[-1] if instances else None
+
+            return last_instance
+        except Exception as e:
+            raise ValueError((str(e), url, params, req.text))
+    return None
 
 
 @lru_cache(5)
@@ -199,6 +269,8 @@ def cartodb2ogr(service_endpoint, aoi, out_fields=''):
     endpoint_template = 'https://{}.carto.com/tables/{}/'
     username, table = search(endpoint_template, service_endpoint + '/')
     url = 'https://{username}.carto.com/api/v2/sql'.format(username=username)
+
+    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
 
     params = {}
     fields = ['ST_AsGeoJSON(the_geom) as geometry']
@@ -210,7 +282,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields=''):
     where = "ST_Intersects(ST_GeomFromText('{wkt}',4326),the_geom)"
     where = where.format(wkt=wkt.dumps({
         'type': 'MultiPolygon',
-        'coordinates': [bbox(f) for f in json.loads(aoi)['features']]
+        'coordinates': [bbox(f) for f in featureset['features']]
     }))
 
     q = 'SELECT {fields} FROM {table} WHERE {where}'

@@ -6,6 +6,8 @@ from sample_data import INDONESIA_USER_POLY
 from sample_data import AZE_TEST
 from sample_data import LANDRIGHTS_TEST
 from sample_data import SOY_BRAZIL
+from sample_data import INTERSECT_BASE_GEOJSON
+from sample_data import INTERSECT_PARTIALLY_WITHIN_GEOJSON
 
 
 def test_hello_local():
@@ -37,6 +39,7 @@ def test_control_tower_remote():
 
 
 def run_request(url):
+    dataset = sys.argv[1]
     payload = {}
     if dataset == 'land-rights':
         payload['geojson'] = LANDRIGHTS_TEST
@@ -45,14 +48,18 @@ def run_request(url):
         payload['geojson'] = AZE_TEST
     elif dataset == 'soy':
         payload['geojson'] = SOY_BRAZIL
+    elif dataset == 'none':
+        payload['geojson'] = INTERSECT_BASE_GEOJSON
+        payload['geojson2'] = INTERSECT_PARTIALLY_WITHIN_GEOJSON
     else:
         payload['geojson'] = INDONESIA_USER_POLY
-    payload['unit'] = 'hectare'
     if dataset == 'modis':
         payload['period'] = '2014-01-01,2015-12-31'
 
     print(url.format(analysis, dataset))
 
+    if dataset == 'none':
+        dataset = ''
     result = requests.post(url.format(analysis, dataset), json=payload,
                            allow_redirects=True)
     # print(result)

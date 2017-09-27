@@ -1,12 +1,12 @@
 {
 	"name": "#(service.name)",
 	"endpoints": [{
-		"path": "/v1/polyIntersect/erase-and-intersect-geom/hello",
+		"path": "/v1/polyIntersect/ANALYSIS_KEY/hello",
 		"method": "GET",
 		"binary": true,
 		"redirect": {
 			"method": "GET",
-			"path": "/api/v1/polyIntersect/erase-and-intersect-geom/hello"
+			"path": "/api/v1/polyIntersect/ANALYSIS_KEY/hello"
 		}
 	}]
 }

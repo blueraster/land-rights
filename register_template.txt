@@ -1,1 +1,1 @@
-},\n\t{\n\t\t"path":\ "/v1/polyIntersect/ANALYSIS_KEY/DATASET",\n\t\t"method":\ "POST",\n\t\t"redirect":\ {\n\t\t\t"method":\ "POST",\n\t\t\t"path":\ "/api/v1/polyIntersect/ANALYSIS_KEY/DATASET"\n\t\t}\n\t}]
+},\n\t{\n\t\t"path":\ "/v1/polyIntersect/ANALYSIS_KEY_ENDPOINT",\n\t\t"method":\ "POST",\n\t\t"redirect":\ {\n\t\t\t"method":\ "POST",\n\t\t\t"path":\ "/api/v1/polyIntersect/ANALYSIS_KEY_ENDPOINT"\n\t\t}\n\t}]
