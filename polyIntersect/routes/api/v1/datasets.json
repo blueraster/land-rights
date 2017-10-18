@@ -19,8 +19,13 @@
 		"category": "",
 		"field": ""
 	},
-	"plantation-species": {
-		"id": "9a8f7e55-9ec7-4be2-b7c5-3e0864ed4e54",
+	"plantations-by-species": {
+		"id": "2577898d-93ea-42ed-9e6d-9571632d3884",
+		"category": "spec_org",
+		"field": ""
+	},
+	"plantations-by-type": {
+		"id": "1ec7d5e9-0407-4a55-9a4a-73cf91a1762a",
 		"category": "spec_simp",
 		"field": ""
 	},
@@ -44,8 +49,48 @@
 		"category": "",
 		"field": ""
 	},
+	"peat-pr": {
+		"id": "d6621f4c-e5e3-4f6c-81d7-6239401fc378",
+		"category": "",
+		"field": ""
+	},
 	"soy": {
-		"id": "95bae84c-b73d-40d4-956e-70b7b999cf90",
+		"id": "473eeb03-0202-4808-b46d-34a2c7d070b4",
+		"category": "",
+		"field": ""
+	},
+	"modis": {
+		"id": "0e46253c-4977-4fab-86f3-cb58945de32d",
+		"category": "Year",
+		"field": ""
+	},
+	"viirs": {
+		"id": "702d69b8-e9af-4492-bb47-eacea31d7ccf",
+		"category": "Year,Month",
+		"field": "ACQ_DATE"
+	},
+	"plantations": {
+		"id": "f2d7db47-dc12-4a39-9514-1d5eb700c662",
+		"category": "",
+		"field": ""
+	},
+	"hnd-forest": {
+		"id": "f26e69a7-077f-4b49-871e-53363f72f9e9",
+		"category": "",
+		"field": ""
+	},
+	"afr-forest": {
+		"id": "f2fb1982-68c5-45b9-bcdc-7f80e94e2dc1",
+		"category": "",
+		"field": ""
+	},
+	"land-cover": {
+		"id": "",
+		"category": "",
+		"field": ""
+	},
+	"no-dataset": {
+		"id": "",
 		"category": "",
 		"field": ""
 	}

@@ -6,6 +6,8 @@ from sample_data import INDONESIA_USER_POLY
 from sample_data import AZE_TEST
 from sample_data import LANDRIGHTS_TEST
 from sample_data import SOY_BRAZIL
+from sample_data import INTERSECT_BASE_GEOJSON
+from sample_data import INTERSECT_PARTIALLY_WITHIN_GEOJSON
 
 
 def test_hello_local():
@@ -37,20 +39,27 @@ def test_control_tower_remote():
 
 
 def run_request(url):
+    dataset = sys.argv[1]
     payload = {}
     if dataset == 'land-rights':
-        payload['geojson'] = LANDRIGHTS_TEST
+        payload['geojson'] = json.loads(LANDRIGHTS_TEST)
         # payload['user_json'] = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[102.65625, -0.11535636737818807], [102.32666015625, -0.17578097424708533], [102.5628662109375, -0.41198375451568836], [102.68920898437499, -0.21972602392080884], [102.65625, -0.11535636737818807]]]}}]}"
     elif dataset == 'aze':
-        payload['geojson'] = AZE_TEST
+        payload['geojson'] = json.loads(AZE_TEST)
     elif dataset == 'soy':
-        payload['geojson'] = SOY_BRAZIL
+        payload['geojson'] = json.loads(SOY_BRAZIL)
+    elif dataset == 'none':
+        payload['geojson'] = json.loads(INTERSECT_BASE_GEOJSON)
+        payload['geojson2'] = json.loads(INTERSECT_PARTIALLY_WITHIN_GEOJSON)
     else:
-        payload['geojson'] = INDONESIA_USER_POLY
-    payload['unit'] = 'hectare'
+        payload['geojson'] = json.loads(INDONESIA_USER_POLY)
+    if dataset == 'modis':
+        payload['period'] = '2014-01-01,2015-12-31'
 
     print(url.format(analysis, dataset))
 
+    if dataset == 'none':
+        dataset = ''
     result = requests.post(url.format(analysis, dataset), json=payload,
                            allow_redirects=True)
     # print(result)
