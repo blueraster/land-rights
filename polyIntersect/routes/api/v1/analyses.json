@@ -1,5 +1,5 @@
 {
-	"geometry": {
+	"geometry-by-location": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -9,7 +9,7 @@
 		},
 		"outputs": ["intersect-geom"]
 	},
-	"area-and-geom": {
+	"area-and-geom-by-location": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -18,24 +18,14 @@
 	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
 	        "aoi-prj": ["project_features", "aoi"],
 	        "intersect-geom-prj": ["project_features", "intersect-geom"],
-	        "aoi-area": ["get_area", "aoi-prj"],
+	        "aoi-area": ["get_area", "aoi-prj", "{id_field}"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"],
-	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area"]
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area",
+	        	"{id_field}"]
 		},
-		"outputs": ["intersect-geom", "aoi-area", "intersect-area", "intersect-areapct"]
+		"outputs": ["intersect-geom", "intersect-areapct"]
 	},
-	"erase-and-intersect-geom": {
-		"graph": {
-			"aoi": ["geojson", "{user_json}"],
-			"reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
-	        	"{out_fields}"],
-	        "dissolve-data": ["dissolve", "reference-data"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
-	        "erase-geom": ["erase", "aoi", "dissolve-data"]
-		},
-		"outputs": ["erase-geom", "intersect-geom"]
-	},
-	"area": {
+	"area-by-location": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -44,27 +34,10 @@
 	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
 	        "aoi-prj": ["project_features", "aoi"],
 	        "intersect-geom-prj": ["project_features", "intersect-geom"],
-	        "aoi-area": ["get_area", "aoi-prj"],
+	        "aoi-area": ["get_area", "aoi-prj", "{id_field}"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"],
-	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area"]
-		},
-		"outputs": ["aoi-area", "intersect-area", "intersect-areapct"]
-	},
-	"intersect-geom": {
-		"graph": {
-			"geom1": ["geojson", "{user_json}"],
-			"geom2": ["geojson", "{user_json_2}"],
-			"intersect-geom": ["intersect", "geom1", "geom2"]
-		},
-		"outputs": ["intersect-geom"]
-	},
-	"intersect-area": {
-		"graph": {
-			"geom1": ["geojson", "{user_json}"],
-			"geom2": ["geojson", "{user_json_2}"],
-			"intersect-geom": ["intersect", "geom1", "geom2"],
-			"intersect-geom-prj": ["project_features", "intersect-geom"],
-			"intersect-area": ["get_area", "intersect-geom-prj"]
+	        "intersect-areapct": ["get_area_percent", "intersect-geom-prj", "aoi-area",
+	        	"{id_field}"]
 		},
 		"outputs": ["intersect-area"]
 	},

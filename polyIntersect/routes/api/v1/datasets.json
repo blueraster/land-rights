@@ -1,6 +1,6 @@
 {
 	"brazil-biomes": {
-		"id": "d874c75e-ae0c-44d6-8554-ce4661471804",
+		"id": "5de0f800-87c8-44b1-8927-724de89bfba5",
 		"category": "name",
 		"field": ""
 	},
@@ -10,12 +10,12 @@
 		"field": ""
 	},
 	"idn-legal-classifications": {
-		"id": "da106d6a-86e3-43a1-b9af-f609c6b543d2",
+		"id": "01522484-3f83-4b6d-872b-03917eae82e3",
 		"category": "lc_general",
 		"field": ""
 	},
 	"wdpa": {
-		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
+		"id": "9e354df2-073e-45a9-b81d-71a209781cbc",
 		"category": "",
 		"field": ""
 	},
@@ -30,22 +30,22 @@
 		"field": ""
 	},
 	"land-rights": {
-		"id": "ba38e1d9-d026-43b5-8944-23bd71473f56", 
+		"id": "984b1612-8f53-46a8-8c34-a760412bc205", 
 		"category": "",
 		"field": ""
 	},
 	"aze": {
-		"id": "6a276d13-a079-4ba4-9c1f-54936b458b33",
+		"id": "e90c0d5e-33b1-445b-9073-c211ecc78035",
 		"category": "sitename_1",
 		"field": "species"
 	},
 	"ifl": {
-		"id": "79e15345-5c83-4d41-94b4-03f2b2018b77",
+		"id": "1698b626-176f-4822-aa54-31f22acba136",
 		"category": "",
 		"field": ""
 	},
 	"peat": {
-		"id": "7d3b46b9-38a2-4223-8c66-882049ebe9b5",
+		"id": "4c6b1dcf-7b7e-43c1-9022-be4efc895b39",
 		"category": "",
 		"field": ""
 	},
