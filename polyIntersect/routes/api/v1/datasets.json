@@ -66,13 +66,23 @@
 		"field": ""
 	},
 	"modis": {
-		"id": "0e46253c-4977-4fab-86f3-cb58945de32d",
+		"id": "ee6e3672-c30c-45ce-b2d6-30545c6cfcac",
 		"category": "Year",
 		"field": ""
 	},
+	"modis-24": {
+		"id": "baac30f5-5ca0-4b95-87f2-3a5d2500e08e",
+		"category": "",
+		"field": ""
+	},
 	"viirs": {
-		"id": "702d69b8-e9af-4492-bb47-eacea31d7ccf",
+		"id": "cb35125d-46da-488c-8a33-1ceb15732444",
 		"category": "Year,Month",
+		"field": "ACQ_DATE"
+	},
+	"viirs-24": {
+		"id": "9ea7e9ab-d69e-492a-9c0b-550c9f955110",
+		"category": "",
 		"field": "ACQ_DATE"
 	},
 	"plantations": {
