@@ -9,7 +9,7 @@
 		},
 		"outputs": ["intersect-geom"]
 	},
-	"area-and-geom-by-location": {
+	"area-and-geom": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
@@ -32,9 +32,9 @@
 	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
 	        "erase-geom": ["erase", "aoi", "dissolve-data"]
 		},
-		"outputs": ["intersect-geom", "intersect-areapct"]
+		"outputs": ["erase-geom", "intersect-geom"]
 	},
-	"area-by-location": {
+	"area": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",

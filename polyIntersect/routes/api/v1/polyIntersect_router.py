@@ -5,6 +5,11 @@ from flask import request, jsonify
 from polyIntersect.routes.api.v1 import endpoints
 import polyIntersect.micro_functions.poly_intersect as analysis_funcs
 import requests
+from datetime import datetime
+
+
+def convert_date(date):
+    return datetime.strptime(date, '%Y-%m-%d').strftime('%#m/%#d/%Y')
 
 
 def create_dag_from_json(graphJson):
@@ -105,7 +110,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
         except Exception as e:
             raise ValueError((str(e), requests.get(dataset_url).text))
     else:
-        raise ValueError('GFW dataset endpoint not supported')
+        layer_url = ''
+        gfw_dataset = ''
 
     # get graph and populate with parameters
     graph = analyses[analysis]['graph']
