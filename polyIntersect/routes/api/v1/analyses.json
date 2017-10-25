@@ -172,7 +172,8 @@
 		"graph": {
 			"counts-by-month": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"],
 			"count-last-30days": ["esri_count_30days", "{layer_url}", "{user_json}", "{field}"],
-			"date-last-fire": ["esri_last_instance", "{layer_url}", "{user_json}", "{field}"]
+			"timestamp-last-fire": ["esri_last_instance", "{layer_url}", "{user_json}", "{field}"],
+			"date-last-fire": ["get_date_from_timestamp", "timestamp-last-fire"]
 		},
 		"outputs": ["counts-by-month", "count-last-30days", "date-last-fire"]
 	}

@@ -22,7 +22,7 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'project_global', 'buffer_to_dist', 'get_area', 'get_area_percent',
            'esri_server2ogr', 'get_species_count', 'esri_server2histo',
            'esri_count_groupby', 'cartodb2ogr', 'esri_count_30days',
-           'esri_last_instance', 'erase']
+           'esri_last_instance', 'erase', 'get_date_from_timestamp']
 
 HA_CONVERSION = 10000
 t0 = 0
@@ -652,83 +652,6 @@ def get_date_from_timestamp(timestamp):
     return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
 
 
-# def get_intersect_area(intersection, intersection_proj, unit='hectare'):
-#     '''
-#     Calculate the area overlap of an intersection with the user AOI. Can
-#     calculate areas by category using a groupby field.
-
-#     If calculating areas by category, there must be one feature per unique
-#     value in the category field. If not, there must be one feature total in
-#     the intersected featureset
-#     '''
-
-#     unit_conversions = {'meter': 1, 'kilometer': 1000, 'hectare': 10000}
-#     if unit not in unit_conversions.keys():
-#         raise ValueError('Invalid unit')
-
-#     new_features = []
-#     for f, p in zip(intersection['features'], intersection_proj['features']):
-#         new_feat = dict(type='Feature',
-#                         geometry=f['geometry'],
-#                         properties=f['properties'])
-#         new_feat['properties']['area'] = (p['geometry'].area /
-#                                           unit_conversions[unit])
-#         new_features.append(new_feat)
-
-#     new_featureset = dict(type=intersection['type'],
-#                           features=new_features)
-#     if 'crs' in intersection.keys():
-#         new_featureset['crs'] = intersection['crs']
-#     return new_featureset
-
-    # if category:
-    #     area_overlap = {f['properties'][category]: f['properties']['area']
-    #                     for f in intersection['features']}
-    # else:
-    #     f = intersection['features'][0]
-    #     area_overlap = f['properties']['area']
-
-    # return area_overlap
-
-
-# def get_intersect_area_percent(intersection, intersection_proj, aoi_proj):
-    # '''
-    # Calculate the area overlap of an intersection with the user AOI. Can
-    # calculate areas by category using a groupby field.
-
-    # If calculating areas by category, there must be one feature per unique
-    # value in the category field. If not, there must be one feature total in
-    # the intersected featureset
-    # '''
-
-    # new_features = []
-    # for f, p in zip(intersection['features'], intersection_proj['features']):
-    #     new_feat = dict(type='Feature',
-    #                     geometry=f['geometry'],
-    #                     properties=f['properties'])
-    #     i = f['properties']['id'] if 'id' in f['properties'].keys() else 0
-    #     aoi_area = aoi_proj['features'][i]['geometry'].area
-    #     new_feat['properties']['area-percent'] = (p['geometry'].area * 100. /
-    #                                               aoi_area)
-    #     new_features.append(new_feat)
-
-    # new_featureset = dict(type=intersection['type'],
-    #                       features=new_features)
-    # if 'crs' in intersection.keys():
-    #     new_featureset['crs'] = intersection['crs']
-    # return new_featureset
-
-    # if category:
-    #     pct_overlap = {f['properties'][category]:
-    #                    f['properties']['area_percent']
-    #                    for f in intersection['features']}
-    # else:
-    #     f = intersection['features'][0]
-    #     pct_overlap = f['properties']['area_percent']
-
-    # return pct_overlap
-
-
 def get_species_count(intersection, field):
     '''
     Count number of unique species found within the features of an
@@ -740,22 +663,6 @@ def get_species_count(intersection, field):
         species_list += species_string.split(',')
     species_set = set(species_list)
     return len(species_set)
-
-
-# def get_z_scores(intersection, category, field):
-    '''
-    Get z score of numerical attribute from features of an intersection with
-    the user AOI
-    '''
-    # if not validate_featureset(intersection, category):
-    #     return 0
-
-    # scores = stats.zscore([f['properties'][field]
-    #                        for f in intersection['features']])
-    # for i, f in enumerate(intersection['features']):
-    #     f['properties']['z-score'] = scores[i]
-    # return {f['properties'][category]: f['properties']['z-score']
-    #         for f in intersection['features']}
 
 
 def is_valid(analysis_method):
