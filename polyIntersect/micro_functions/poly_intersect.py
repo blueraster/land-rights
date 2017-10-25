@@ -464,8 +464,8 @@ def project_local(featureset):
         else:
             x += f['geometry'].centroid.x
             y += f['geometry'].centroid.y
-    x /= len(featureset['features'])
-    y /= len(featureset['features'])
+    x = x / len(featureset['features']) if featureset['features'] else 0
+    y = y / len(featureset['features']) if featureset['features'] else 0
 
     # define local projection
     proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
