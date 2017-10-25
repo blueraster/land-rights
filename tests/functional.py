@@ -46,7 +46,7 @@ def run_request(url):
         # payload['user_json'] = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[102.65625, -0.11535636737818807], [102.32666015625, -0.17578097424708533], [102.5628662109375, -0.41198375451568836], [102.68920898437499, -0.21972602392080884], [102.65625, -0.11535636737818807]]]}}]}"
     elif dataset == 'aze':
         payload['geojson'] = json.loads(AZE_TEST)
-    elif dataset == 'soy':
+    elif dataset == 'soy' or dataset == 'brazil-biomes':
         payload['geojson'] = json.loads(SOY_BRAZIL)
     elif dataset == 'none':
         payload['geojson'] = json.loads(INTERSECT_BASE_GEOJSON)
@@ -66,9 +66,10 @@ def run_request(url):
     try:
         response = result.json()
         assert isinstance(response, dict)
-        if "intersect-geom" in response.values():
+        if "intersect-geom" in response.keys():
             fc = json.loads(response['intersect-geom'])
             assert fc['type'] == 'FeatureCollection'
+            # print(response['intersect-geom'])
             json.dump(fc, open('output.json', 'w'))
         for key, val in response.items():
             if key != "intersect-geom":
@@ -84,7 +85,7 @@ if __name__ == '__main__':
     analysis = os.environ['ANALYSIS']
     dataset = sys.argv[1]
     test_hello_local()
-    test_hello_control_tower()
+    #test_hello_control_tower()
     test_local()
-    test_control_tower()
+    #test_control_tower()
     # test_brazil_biomes_control_tower_remote()

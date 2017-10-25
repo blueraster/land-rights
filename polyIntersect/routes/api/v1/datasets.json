@@ -4,15 +4,15 @@
 		"category": "name",
 		"field": ""
 	},
-	"global-land-cover": {
-		"id": "",
-		"category": "",
-		"field": ""
-	},
 	"idn-legal-classifications": {
 		"id": "da106d6a-86e3-43a1-b9af-f609c6b543d2",
 		"category": "lc_general",
 		"field": ""
+	},
+	"wdpa - NOT USED ATM": {
+		"id": "dbe7aa33-b908-4ce7-ac42-dde07f259044",
+		"category": "iucn_cat",
+		"field": "desig_eng"
 	},
 	"wdpa": {
 		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
@@ -27,7 +27,8 @@
 	"plantations-by-type": {
 		"id": "1ec7d5e9-0407-4a55-9a4a-73cf91a1762a",
 		"category": "spec_simp",
-		"field": ""
+		"field": "",
+		"where": "type_text = 'Large industrial plantation'"
 	},
 	"land-rights": {
 		"id": "ba38e1d9-d026-43b5-8944-23bd71473f56", 
@@ -44,8 +45,13 @@
 		"category": "",
 		"field": ""
 	},
+	"peat - Esri, DO NOT USE keeps returning M and Z vals": {
+		"id": "1471aec4-4790-4634-bec0-4a497fd6e4e8",
+		"category": "",
+		"field": ""
+	},
 	"peat": {
-		"id": "7d3b46b9-38a2-4223-8c66-882049ebe9b5",
+		"id": "2fe0f74a-9f91-43a3-98db-bed55a01077f",
 		"category": "",
 		"field": ""
 	},
@@ -84,13 +90,18 @@
 		"category": "",
 		"field": ""
 	},
-	"land-cover": {
+	"no-dataset": {
 		"id": "",
 		"category": "",
 		"field": ""
 	},
-	"no-dataset": {
-		"id": "",
+	"prodes": {
+		"id": "a5d016e9-3185-4088-b780-cbdaac724c0d",
+		"category": "",
+		"field": ""
+	},
+	"gadm": {
+		"id": "9d6e6723-1215-4714-97f0-6b740e0b3a2e",
 		"category": "",
 		"field": ""
 	}

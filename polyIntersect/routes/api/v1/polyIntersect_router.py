@@ -78,6 +78,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
     category = datasets[dataset]['category'] if dataset else ''
     field = datasets[dataset]['field'] if dataset else ''
     out_fields = ','.join([f for f in [category, field] if f])
+    where = (datasets[dataset]['where'] if 'where' in datasets[dataset].keys()
+             else '1=1')
 
     # get gfw api url for dataset based on its id
     dataset_id = datasets[dataset]['id'] if dataset else ''
@@ -120,7 +122,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
                            out_fields=out_fields,
                            layer_url=layer_url,
                            category=category,
-                           field=field) for val in vals]
+                           field=field,
+                           where=where) for val in vals]
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 

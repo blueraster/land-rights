@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from functools import partial, lru_cache
 import pyproj
 import numpy as np
-# from scipy import stats
+from time import time
 
 from shapely.geometry import shape, mapping
 from shapely.geometry.polygon import Polygon
@@ -18,12 +18,14 @@ from shapely.geometry.collection import GeometryCollection
 from shapely.ops import unary_union, transform
 
 
-__all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_features',
-           'buffer_to_dist', 'get_area', 'get_area_percent', 'esri_server2ogr',
-           'get_species_count', 'esri_server2histo', 'esri_count_groupby',
-           'cartodb2ogr', 'esri_count_30days', 'esri_last_instance']
+__all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
+           'project_global', 'buffer_to_dist', 'get_area', 'get_area_percent',
+           'esri_server2ogr', 'get_species_count', 'esri_server2histo',
+           'esri_count_groupby', 'cartodb2ogr', 'esri_count_30days',
+           'esri_last_instance', 'erase']
 
 HA_CONVERSION = 10000
+t0 = 0
 
 
 def json2ogr(in_json):
@@ -40,23 +42,6 @@ def json2ogr(in_json):
     if 'features' not in in_json.keys():
         raise ValueError('input json must contain features property')
 
-    # why does peat keep returning m and z values??? maybe use carto version
-    if len(in_json['features']) > 0:
-        test = in_json['features'][0]['geometry']
-        if ((test['type'] == 'Polygon' and
-             len(test['coordinates'][0][0])) > 2 or
-                (test['type'] == 'MultiPolygon' and
-                 len(test['coordinates'][0][0][0]) > 2)):
-            for f in in_json['features']:
-                coords = f['geometry']['coordinates']
-                if test['type'] == 'Polygon':
-                    f['geometry']['coordinates'] = [[coord[:2] for coord in
-                                                     ring] for ring in coords]
-                elif test['type'] == 'MultiPolygon':
-                    f['geometry']['coordinates'] = [[[coord[:2] for coord in
-                                                      ring] for ring in poly]
-                                                    for poly in coords]
-
     for f in in_json['features']:
         f['geometry'] = shape(f['geometry'])
 
@@ -71,10 +56,18 @@ def ogr2json(featureset):
     Convert GDAL geometry to geojson object
     '''
 
+    new_features = []
     for f in featureset['features']:
-        f['geometry'] = mapping(f['geometry'])
+        new_features.append(dict(geometry=mapping(f['geometry']),
+                                 properties=f['properties'],
+                                 type=f['type']))
+        # f['geometry'] = mapping(f['geometry'])
 
-    return json.dumps(featureset)
+    new_featureset = dict(type=featureset['type'],
+                          features=new_features)
+    if 'crs' in featureset.keys():
+        new_featureset['crs'] = featureset['crs']
+    return json.dumps(new_featureset)
 
 
 def explode(coords):
@@ -103,12 +96,12 @@ def bbox(f):
 
 
 @lru_cache(5)
-def esri_server2ogr(layer_endpoint, aoi, out_fields):
+def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1'):
 
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
     params = {}
-    params['where'] = '1=1'
+    params['where'] = where
     if 'objectid' not in out_fields:
         out_fields = 'objectid,' + out_fields if out_fields else 'objectid'
     params['outFields'] = out_fields
@@ -265,7 +258,7 @@ def esri_last_instance(layer_endpoint, aoi, field):
 
 
 @lru_cache(5)
-def cartodb2ogr(service_endpoint, aoi, out_fields=''):
+def cartodb2ogr(service_endpoint, aoi, out_fields, where=''):
     endpoint_template = 'https://{}.carto.com/tables/{}/'
     username, table = search(endpoint_template, service_endpoint + '/')
     url = 'https://{username}.carto.com/api/v2/sql'.format(username=username)
@@ -279,17 +272,23 @@ def cartodb2ogr(service_endpoint, aoi, out_fields=''):
         if field:
             fields.append('{field} as {field}'.format(field=field))
 
-    where = "ST_Intersects(ST_GeomFromText('{wkt}',4326),the_geom)"
-    where = where.format(wkt=wkt.dumps({
-        'type': 'MultiPolygon',
-        'coordinates': [bbox(f) for f in featureset['features']]
-    }))
+    where_clause = "ST_Intersects(ST_Buffer({},0),the_geom)"
+    where_clause = where_clause.format("ST_GeomFromText('{}',4326)".format(
+        wkt.dumps({'type': 'MultiPolygon',
+                   'coordinates': [bbox(f) for f in featureset['features']]}
+                  )))
+    if where and not where == '1=1':
+        where_clause += 'AND {}'.format(where)
 
     q = 'SELECT {fields} FROM {table} WHERE {where}'
-    params = {'q': q.format(fields=','.join(fields), table=table, where=where)}
+    params = {'q': q.format(fields=','.join(fields), table=table,
+              where=where_clause)}
 
-    req = requests.get(url, params=params)
-    req.raise_for_status()
+    try:
+        req = requests.get(url, params=params)
+        req.raise_for_status()
+    except Exception as e:
+        raise ValueError((e, [bbox(f) for f in featureset['features']]))
 
     response = json.loads(req.text)['rows']
     features = {
@@ -300,7 +299,11 @@ def cartodb2ogr(service_endpoint, aoi, out_fields=''):
             'properties': {field: feat[field] for field in out_fields if field}
         } for feat in response]
     }
-    return json2ogr(features)
+    global t0
+    t0 = time()
+    featureset = json2ogr(features)
+    # raise ValueError(time()-t0)
+    return featureset
 
 
 def dissolve(featureset, field=None):
@@ -372,6 +375,13 @@ def intersect(featureset1, featureset2):
         for fid in list(index.intersection(geom1.bounds)):
             feat2 = featureset2['features'][fid]
             geom2 = feat2['geometry']
+            if not geom1.is_valid:
+                # raise ValueError('Geometry from featureset1 is not valid')
+                geom1 = geom1.buffer(0)
+            if not geom2.is_valid:
+                # raise ValueError('Geometry from featureset2 is not valid')
+                geom2 = geom2.buffer(0)
+
             if geom1.intersects(geom2):  # TODO: optimize to on intersect call?
                 new_geom = geom1.intersection(geom2)
                 new_feat = dict(properties={**feat2['properties'],
@@ -417,42 +427,16 @@ def erase(featureset, erase_featureset):
     return new_featureset
 
 
-def project_features(featureset, local=True):
-    '''
-    Transform geometry with a local projection centered at the
-    shape's centroid
-    '''
-    if ('crs' in featureset.keys() and
-            featureset['crs']['properties']['name'] ==
-            'urn:ogc:def:uom:EPSG::9102'):
-        return featureset
-
+def project_features(featureset, project):
     new_features = []
-    name = 'urn:ogc:def:uom:EPSG::9102' if local else 'EPSG:4326'
-
     for f in featureset['features']:
         if isinstance(f['geometry'], Polygon):
             geom = Polygon(f['geometry'])
-            x, y = geom.centroid.x, geom.centroid.y
         elif isinstance(f['geometry'], MultiPolygon):
             geom = MultiPolygon(f['geometry'])
-            x, y = geom.centroid.x, geom.centroid.y
         elif isinstance(f['geometry'], GeometryCollection):
             geom = GeometryCollection(f['geometry'])
-            x = np.mean([geom_item.centroid.x for geom_item in geom])
-            y = np.mean([geom_item.centroid.y for geom_item in geom])
-        else:
-            raise ValueError(type(f['geometry']))
-        proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
-                 +units=m +no_defs '.format(y, x)
-        if local:
-            project = partial(pyproj.transform,
-                              pyproj.Proj(init='epsg:4326'),
-                              pyproj.Proj(proj4))
-        else:
-            project = partial(pyproj.transform,
-                              pyproj.Proj(proj4),
-                              pyproj.Proj(init='epsg:4326'))
+
         projected_geom = transform(project, geom)
         new_feat = dict(properties=f['properties'],
                         geometry=projected_geom,
@@ -460,9 +444,67 @@ def project_features(featureset, local=True):
         new_features.append(new_feat)
 
     return dict(type=featureset['type'],
-                crs=dict(type='name',
-                         properties=dict(name=name)),
                 features=new_features)
+
+
+def project_local(featureset):
+    if ('crs' in featureset.keys() and
+            featureset['crs']['properties']['name'] ==
+            'urn:ogc:def:uom:EPSG::9102'):
+        return featureset
+
+    name = 'urn:ogc:def:uom:EPSG::9102'
+
+    # get cumulative centroid of all features
+    x, y = 0, 0
+    for f in featureset['features']:
+        if isinstance(f['geometry'], GeometryCollection):
+            x += np.mean([geom_item.centroid.x for geom_item in f['geometry']])
+            y += np.mean([geom_item.centroid.y for geom_item in f['geometry']])
+        else:
+            x += f['geometry'].centroid.x
+            y += f['geometry'].centroid.y
+    x /= len(featureset['features'])
+    y /= len(featureset['features'])
+
+    # define local projection
+    proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
+             +units=m +no_defs +R=6371000 '.format(y, x)
+
+    # define projection transformation
+    project = partial(pyproj.transform,
+                      pyproj.Proj(init='epsg:4326'),
+                      pyproj.Proj(proj4))
+
+    # peoject features and add projection info
+    new_featureset = project_features(featureset, project)
+    new_featureset['crs'] = dict(type="name",
+                                 properties=dict(name=name,
+                                                 centroid=[x, y]))
+    return new_featureset
+
+
+def project_global(featureset):
+    if ('crs' in featureset.keys() and
+            featureset['crs']['properties']['name'] == 'EPSG:4326'):
+        return featureset
+    elif 'crs' not in featureset.keys():
+        raise ValueError('Local projection must have crs info to reproject')
+
+    name = 'EPSG:4326'
+    [x, y] = featureset['crs']['properties']['centroid']
+
+    proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
+             +units=m +no_defs +R=6371000 '.format(y, x)
+
+    project = partial(pyproj.transform,
+                      pyproj.Proj(proj4),
+                      pyproj.Proj(init='epsg:4326'))
+
+    new_featureset = project_features(featureset, project)
+    new_featureset['crs'] = dict(type="name",
+                                 properties=dict(name=name))
+    return new_featureset
 
 
 def buffer_to_dist(featureset, distance):
@@ -478,7 +520,7 @@ def buffer_to_dist(featureset, distance):
 
     for f in featureset['features']:
         geom = f['geometry']
-        buffered_geom = geom.buffer(distance * 1000.0)
+        buffered_geom = geom.buffer(int(distance) * 1000.0)
         new_feat = dict(properties=f['properties'],
                         geometry=buffered_geom,
                         type='Feature')
@@ -563,9 +605,9 @@ def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
     return area_pct
 
 
-def get_soy_on_loss_area(histograms, forest_density=30):
+def get_histo_loss_area(histograms, forest_density=30):
     '''
-    Returns the sum of soy on tree cover loss for years 2001 through 2014
+    Returns the sum of tree cover loss for years 2001 through 2014
     '''
     density_map = {0: 10, 10: 25, 15: 40, 20: 55,
                    25: 70, 30: 85, 50: 100, 75: 115}
@@ -574,60 +616,40 @@ def get_soy_on_loss_area(histograms, forest_density=30):
                          '  10, 15, 20, 25, 30, 50, 75')
     year_indices = [range(density_map[forest_density] + i + 1, 130, 15)
                     for i in range(14)]
-    if isinstance(histograms, dict):
-        soy_area_loss = {location_id: [sum([histogram[i] for i in indices])
-                                       for indices in year_indices]
-                         for location_id, histogram in histograms.items()}
-    else:
-        soy_area_loss = [sum([histograms[i] for i in indices])
-                         for indices in year_indices]
+    histo_area_loss = [sum([histograms[i] for i in indices])
+                       for indices in year_indices]
 
-    return soy_area_loss
+    return histo_area_loss
 
 
-def get_soy_pre2001_area(histograms):
+def get_histo_pre2001_area(histograms):
     '''
-    Returns the sum of soy on tree cover loss, aggregated on years prior to
+    Returns the sum of histo on tree cover loss, aggregated on years prior to
     2001
     '''
     year_indices = range(10, 130, 15)
-    if isinstance(histograms, dict):
-        soy_area_loss = {location_id: sum([histogram[i]
-                                           for i in year_indices])
-                         for location_id, histogram in histograms.items()}
-    else:
-        soy_area_loss = sum([histograms[i] for i in year_indices])
+    histo_area_loss = sum([histograms[i] for i in year_indices])
 
-    return soy_area_loss
+    return histo_area_loss
 
 
-def get_soy_total_area(histograms):
+def get_histo_total_area(histograms):
     '''
-    Returns total area of soy within the aoi
+    Returns total area of histo within the aoi
     '''
-    if isinstance(histograms, dict):
-        soy_area_total = {location_id: sum(histogram)
-                          for location_id, histogram in histograms.items()}
-    else:
-        soy_area_total = sum(histograms)
+    year_indices = [range(i, 130, 15) for i in range(14)]
+    histo_area_total = [sum([histograms[i] for i in indices])
+                        for indices in year_indices]
 
-    return soy_area_total
+    return histo_area_total
 
 
-def get_soy_percent_area(soy_area, aoi_area):
+def get_date_from_timestamp(timestamp):
     '''
     '''
-    if isinstance(soy_area, dict):
-        soy_area_pct = {location_id:
-                        soy_area[location_id] / aoi_area[location_id]
-                        for location_id in soy_area.keys()}
-    else:
-        if aoi_area > 0:
-            soy_area_pct = soy_area / aoi_area
-        else:
-            soy_area_pct = 0
-
-    return soy_area_pct
+    if timestamp > 100000000000:
+        timestamp = timestamp/1000
+    return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
 
 
 # def get_intersect_area(intersection, intersection_proj, unit='hectare'):

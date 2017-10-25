@@ -11,7 +11,8 @@ from polyIntersect.micro_functions.poly_intersect import dissolve
 from polyIntersect.micro_functions.poly_intersect import intersect
 from polyIntersect.micro_functions.poly_intersect import index_featureset
 from polyIntersect.micro_functions.poly_intersect import buffer_to_dist
-from polyIntersect.micro_functions.poly_intersect import project_features
+from polyIntersect.micro_functions.poly_intersect import project_local
+from polyIntersect.micro_functions.poly_intersect import project_global
 from polyIntersect.micro_functions.poly_intersect import get_area
 from polyIntersect.micro_functions.poly_intersect import get_area_percent
 
@@ -92,7 +93,7 @@ def test_project():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_projected = project_features(featureset)
+    geom_projected = project_local(featureset)
     assert isinstance(geom_projected, dict)
     assert 'features' in geom_projected.keys()
     assert (geom_projected['crs']['properties']['name']
@@ -100,14 +101,18 @@ def test_project():
     assert (featureset['crs']['properties']['name']
            != 'urn:ogc:def:uom:EPSG::9102')
 
+    geom_projected_back = project_global(geom_projected)
+    assert (geom_projected_back['crs']['properties']['name']
+            != 'urn:ogc:def:uom:EPSG::9102')
+
 
 def test_project_already_projected():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_projected1 = project_features(featureset)
+    geom_projected1 = project_local(featureset)
     try:
-        geom_projected2 = project_features(geom_projected1)
+        geom_projected2 = project_local(geom_projected1)
     except ValueError as e:
         assert str(e) == 'geometries have already been projected with the \
                           World Azimuthal Equidistant coordinate system'
@@ -117,7 +122,7 @@ def test_projected_buffer():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_projected = project_features(featureset)
+    geom_projected = project_local(featureset)
     geom_buffered = buffer_to_dist(geom_projected, 10)
     assert isinstance(geom_buffered, dict)
     assert 'features' in geom_buffered.keys()
@@ -147,8 +152,8 @@ def test_area_percent_no_categories():
     result_featureset = intersect(featureset1, featureset2)
     assert len(result_featureset['features']) == 1
 
-    featureset1_projected = project_features(featureset1)
-    result_projected = project_features(result_featureset)
+    featureset1_projected = project_local(featureset1)
+    result_projected = project_local(result_featureset)
 
     aoi_area = get_area(featureset1_projected)
     area_pct = get_area_percent(result_projected, aoi_area)
@@ -169,8 +174,8 @@ def test_area_percent_with_categories():
     field_vals = [f['properties']['value'] for f in result_featureset['features']]
     assert len(field_vals) == len(set(field_vals))
 
-    featureset1_projected = project_features(featureset1)
-    result_projected = project_features(result_featureset)
+    featureset1_projected = project_local(featureset1)
+    result_projected = project_local(result_featureset)
 
     aoi_area = get_area(featureset1_projected, 'id')
     area_pct = get_area_percent(result_projected, aoi_area, 'id', 'value')
