@@ -143,19 +143,24 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1'):
     # return json2ogr(req.text)
 
 
-def esri_server2histo(layer_endpoint, aoi):
+def esri_server2histo(layer_endpoint, aoi, field=None):
     url = layer_endpoint.replace('?f=pjson', '') + '/computeHistograms'
 
     params = {}
     params['f'] = 'json'
     params['geometryType'] = 'esriGeometryPolygon'
-    params['spatialRel'] = 'esriSpatialRelIntersects'
-    params['returnGeometry'] = True
-    params['where'] = '1=1'
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
-    if featureset['features']:
-        f = featureset['features'][0]
+    if field:
+        histograms = {}
+        for f in json.loads(aoi)['features']:
+            location_id = f['properties'][field]
+            params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                      'spatialReference': {'wkid': 4326}})
+            req = requests.post(url, data=params)
+            req.raise_for_status()
+            # raise ValueError(url)
+            histograms[location_id] = req.json()['histograms'][0]['counts']
+    else:
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
@@ -256,7 +261,7 @@ def esri_last_instance(layer_endpoint, aoi, field):
             raise ValueError((str(e), url, params, req.text))
     return None
 
-
+  
 @lru_cache(5)
 def cartodb2ogr(service_endpoint, aoi, out_fields, where=''):
     endpoint_template = 'https://{}.carto.com/tables/{}/'
@@ -560,10 +565,7 @@ def get_area(featureset, field=None):
         for f in featureset['features']:
             area[f['properties'][field]] = f['geometry'].area / HA_CONVERSION
     else:
-        if featureset['features']:
-            area = featureset['features'][0]['geometry'].area / HA_CONVERSION
-        else:
-            area = 0
+        area = featureset['features'][0]['geometry'].area / HA_CONVERSION
     return area
 
 
@@ -596,11 +598,11 @@ def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
             area_pct[int_category] = (f['geometry'].area / HA_CONVERSION /
                                       aoi_area * 100)
     else:
-        if featureset['features']:
+        if len(featureset['features']) == 0:
+            area_pct = 0
+        else:
             area_pct = (featureset['features'][0]['geometry'].area /
                         HA_CONVERSION / aoi_area * 100)
-        else:
-            area_pct = 0
 
     return area_pct
 
