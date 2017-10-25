@@ -647,6 +647,8 @@ def get_histo_total_area(histograms):
 def get_date_from_timestamp(timestamp):
     '''
     '''
+    if not timestamp:
+        return None
     if timestamp > 100000000000:
         timestamp = timestamp/1000
     return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
