@@ -129,7 +129,10 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
-        response = json2ogr(req.text)
+        try:
+            response = json2ogr(req.text)
+        except:
+            raise ValueError(req.text)
 
         # append response to full dataset, except features already included
         if featureset:
