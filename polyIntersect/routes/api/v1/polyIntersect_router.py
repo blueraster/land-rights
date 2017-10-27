@@ -80,8 +80,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
     category = datasets[dataset]['category'] if dataset else ''
     field = datasets[dataset]['field'] if dataset else ''
     out_fields = ','.join([f for f in [category, field] if f])
-    where = (datasets[dataset]['where'] if 'where' in datasets[dataset].keys()
-             else '1=1')
+    where = (datasets[dataset]['where'] if dataset and
+             'where' in datasets[dataset].keys() else '1=1')
     ip = requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
     token = tokens[ip]
 
