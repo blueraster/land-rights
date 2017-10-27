@@ -1,6 +1,6 @@
 import os
 import logging
-
+import traceback
 
 from flask import Flask
 
@@ -62,4 +62,4 @@ def gone(e):
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return error(status=500, detail=str(e))
+    return error(status=500, detail=str(e), traceback=traceback.format_exc())
