@@ -30,12 +30,7 @@ t0 = 0
 
 
 def test_ip():
-    ips = []
-    for i in range(1000):
-        ips.append(requests.get('http://checkip.amazonaws.com').text.replace('\n', ''))
-    unique_ips = set(ips)
-    ips_dict = {ip_key: len([ip for ip in ips if ip == ip_key]) for ip_key in unique_ips}
-    return ips_dict
+    return requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
 
 
 def json2ogr(in_json):
