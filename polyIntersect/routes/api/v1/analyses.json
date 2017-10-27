@@ -9,6 +9,12 @@
 		},
 		"outputs": ["intersect-geom"]
 	},
+	"test-ip": {
+		"graph": {
+			"ips": ["test_ip"]
+		},
+		"outputs": ["ips"]
+	},
 	"area-and-geom": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],

@@ -57,6 +57,7 @@ def run_request(url):
         payload['period'] = '2014-01-01,2015-12-31'
 
     print(url.format(analysis, dataset))
+    print(payload)
 
     if dataset == 'none':
         dataset = ''

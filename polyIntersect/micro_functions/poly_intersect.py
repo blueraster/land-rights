@@ -23,10 +23,19 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'esri_server2ogr', 'get_species_count', 'esri_server2histo',
            'esri_count_groupby', 'cartodb2ogr', 'esri_count_30days',
            'esri_last_instance', 'erase', 'get_date_from_timestamp',
-           'get_feature_count']
+           'get_feature_count', 'test_ip']
 
 HA_CONVERSION = 10000
 t0 = 0
+
+
+def test_ip():
+    ips = []
+    for i in range(1000):
+        ips.append(requests.get('http://checkip.amazonaws.com').text.replace('\n', ''))
+    unique_ips = set(ips)
+    ips_dict = {ip_key: len([ip for ip in ips if ip == ip_key]) for ip_key in unique_ips}
+    return ips_dict
 
 
 def json2ogr(in_json):
