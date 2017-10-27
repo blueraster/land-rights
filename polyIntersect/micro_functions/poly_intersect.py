@@ -22,7 +22,8 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'project_global', 'buffer_to_dist', 'get_area', 'get_area_percent',
            'esri_server2ogr', 'get_species_count', 'esri_server2histo',
            'esri_count_groupby', 'cartodb2ogr', 'esri_count_30days',
-           'esri_last_instance', 'erase', 'get_date_from_timestamp']
+           'esri_last_instance', 'erase', 'get_date_from_timestamp',
+           'get_feature_count']
 
 HA_CONVERSION = 10000
 t0 = 0
@@ -96,7 +97,7 @@ def bbox(f):
 
 
 @lru_cache(5)
-def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1'):
+def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
 
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
@@ -113,6 +114,10 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1'):
     params['spatialRel'] = 'esriSpatialRelIntersects'
     # params['geometry'] = str({'rings': bbox(json.loads(aoi)['features'][0]),
     #                           'spatialReference': {'wkid': 4326}})
+
+    # if protected service, retrieve token
+    if token:
+        params['token'] = token
 
     # iterate through aoi features (Esri does not accept multipart polygons
     # as a spatial filter, and the aoi features may be too far apart to combine
@@ -258,7 +263,7 @@ def esri_last_instance(layer_endpoint, aoi, field):
 
 
 @lru_cache(5)
-def cartodb2ogr(service_endpoint, aoi, out_fields, where=''):
+def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     endpoint_template = 'https://{}.carto.com/tables/{}/'
     username, table = search(endpoint_template, service_endpoint + '/')
     url = 'https://{username}.carto.com/api/v2/sql'.format(username=username)
@@ -646,6 +651,8 @@ def get_histo_total_area(histograms):
 
 def get_date_from_timestamp(timestamp):
     '''
+    Convert a timestamp (which may be in milliseconds, and is assumed to be
+    UTC) to a date string of the form YYYY-MM-DD
     '''
     if not timestamp:
         return None
@@ -665,6 +672,23 @@ def get_species_count(intersection, field):
         species_list += species_string.split(',')
     species_set = set(species_list)
     return len(species_set)
+
+
+def get_feature_count(intersection, field):
+    '''
+    Count the number of features, or the number of features for each
+    value in the intersection's field property
+    '''
+    if field:
+        counts = {}
+        for f in intersection['features']:
+            if f['properties'][field] in counts.keys():
+                counts[f['properties'][field]] += 1
+            else:
+                counts[f['properties'][field]] = 1
+        return counts
+    else:
+        return len(intersection['features'])
 
 
 def is_valid(analysis_method):
