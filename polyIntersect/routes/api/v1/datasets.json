@@ -9,12 +9,13 @@
 		"category": "lc_general",
 		"field": ""
 	},
-	"wdpa - NOT USED ATM": {
-		"id": "dbe7aa33-b908-4ce7-ac42-dde07f259044",
-		"category": "iucn_cat",
-		"field": "desig_eng"
-	},
 	"wdpa": {
+		"id": "c8c3913f-3acf-47e4-836f-025256cc14f2",
+		"category": "iucn_cat",
+		"field": "desig_eng",
+		"tokenUrl": "https://gis-gfw.wri.org/arcgis/tokens/generateToken"
+	},
+	"wdpa - CARTO": {
 		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
 		"category": "",
 		"field": ""

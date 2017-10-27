@@ -1,4 +1,4 @@
-from os import path
+from os import path, environ
 import dask
 import json
 from flask import request, jsonify
@@ -66,6 +66,23 @@ def compute(graph, outputs):
     return final_output
 
 
+def getToken(url):
+    ip = requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    payload = {
+        'username': environ['USERNAME'],
+        'password': environ['PASSWORD'],
+        'client': 'ip',
+        'ip': ip,
+        'expiration': 5,
+        'encrypted': False,
+        'f': 'json'
+    }
+    req = requests.post(url, headers=headers, data=payload)
+    req.raise_for_status()
+    return req.json()['token']
+
+
 def execute_model(analysis, dataset, user_json, geojson2):
 
     # read config files
@@ -80,6 +97,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
     out_fields = ','.join([f for f in [category, field] if f])
     where = (datasets[dataset]['where'] if 'where' in datasets[dataset].keys()
              else '1=1')
+    token = (getToken(datasets[dataset]['tokenUrl']) if
+             'tokenUrl' in datasets[dataset].keys() else '')
 
     # get gfw api url for dataset based on its id
     dataset_id = datasets[dataset]['id'] if dataset else ''
@@ -123,7 +142,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
                            layer_url=layer_url,
                            category=category,
                            field=field,
-                           where=where) for val in vals]
+                           where=where,
+                           token=token) for val in vals]
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 
@@ -135,7 +155,7 @@ def execute_model(analysis, dataset, user_json, geojson2):
     return response
 
 
-@endpoints.route('/ANALYSIS_KEY/hello',
+@endpoints.route('/area-by-cat-buffered/hello',
                  strict_slashes=False, methods=['GET', 'POST'])
 def hello():
     request.json
