@@ -27,7 +27,9 @@ node {
   checkout scm
   properties([
     pipelineTriggers([]),
-    parameters([string(name: 'ANALYSIS', defaultValue: 'area-percentarea-both')])
+    parameters([string(name: 'ANALYSIS', defaultValue: ''),
+                string(name: 'USERNAME', defaultValue: ''),
+                string(name: 'PASSWORD', defaultValue: '')])
   ])
 
   try {
