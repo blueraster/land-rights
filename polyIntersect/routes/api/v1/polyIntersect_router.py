@@ -1,4 +1,4 @@
-from os import path, environ
+from os import path
 import dask
 import json
 from flask import request, jsonify
@@ -66,23 +66,6 @@ def compute(graph, outputs):
     return final_output
 
 
-def getToken(url):
-    ip = requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    payload = {
-        'username': environ['USERNAME'],
-        'password': environ['PASSWORD'],
-        'client': 'ip',
-        'ip': ip,
-        'expiration': 5,
-        'encrypted': False,
-        'f': 'json'
-    }
-    req = requests.post(url, headers=headers, data=payload)
-    req.raise_for_status()
-    return req.json()['token']
-
-
 def execute_model(analysis, dataset, user_json, geojson2):
 
     # read config files
@@ -90,6 +73,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
         analyses = json.load(f)
     with open(path.join(path.dirname(__file__), 'datasets.json')) as f:
         datasets = json.load(f)
+    with open(path.join(path.dirname(__file__), 'tokens.json')) as f:
+        tokens = json.load(f)
 
     # get dataset info
     category = datasets[dataset]['category'] if dataset else ''
@@ -97,8 +82,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
     out_fields = ','.join([f for f in [category, field] if f])
     where = (datasets[dataset]['where'] if 'where' in datasets[dataset].keys()
              else '1=1')
-    token = (getToken(datasets[dataset]['tokenUrl']) if
-             'tokenUrl' in datasets[dataset].keys() else '')
+    ip = requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
+    token = tokens[ip]
 
     # get gfw api url for dataset based on its id
     dataset_id = datasets[dataset]['id'] if dataset else ''
