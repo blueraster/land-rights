@@ -5,7 +5,7 @@ def error(status=400, detail='Bad Request', traceback=''):
     return jsonify(errors=[{
         'status': status,
         'detail': detail,
-        'traceback': traceback
+        'traceback': traceback,
         'david': 'david'
     }]), status
 
