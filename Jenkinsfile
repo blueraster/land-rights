@@ -27,9 +27,7 @@ node {
   checkout scm
   properties([
     pipelineTriggers([]),
-    parameters([string(name: 'ANALYSIS', defaultValue: ''),
-                string(name: 'USERNAME', defaultValue: ''),
-                string(name: 'PASSWORD', defaultValue: '')])
+    parameters([string(name: 'ANALYSIS', defaultValue: '')])
   ])
 
   try {
