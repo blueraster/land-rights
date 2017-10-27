@@ -82,8 +82,9 @@ def execute_model(analysis, dataset, user_json, geojson2):
     out_fields = ','.join([f for f in [category, field] if f])
     where = (datasets[dataset]['where'] if dataset and
              'where' in datasets[dataset].keys() else '1=1')
-    ip = requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
-    token = tokens[ip]
+    # ip = requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
+    # token = tokens[ip]
+    token = ''
 
     # get gfw api url for dataset based on its id
     dataset_id = datasets[dataset]['id'] if dataset else ''
