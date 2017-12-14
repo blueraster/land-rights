@@ -12,7 +12,6 @@ dependencies:
 - json-c=0.12.1=0
 - libdap4=3.18.3=2
 - libspatialindex=1.8.5=1
-- libspatialite=4.3.0a=15
 - openjpeg=2.1.2=3
 - parse=1.8.0=py36_0
 - proj4=4.9.3=4
