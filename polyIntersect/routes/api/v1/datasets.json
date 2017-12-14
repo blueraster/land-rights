@@ -9,12 +9,12 @@
 		"category": "lc_general",
 		"field": ""
 	},
-	"wdpa": {
+	"wdpa_esri": {
 		"id": "c8c3913f-3acf-47e4-836f-025256cc14f2",
 		"category": "iucn_cat",
 		"field": "desig_eng"
 	},
-	"wdpa - CARTO": {
+	"wdpa": {
 		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
 		"category": "",
 		"field": ""
