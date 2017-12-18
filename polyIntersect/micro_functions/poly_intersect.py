@@ -177,6 +177,30 @@ def esri_server2histo(layer_endpoint, aoi):
     return histograms
 
 
+def esri_attributes(layer_endpoint, aoi, out_fields):
+    url = layer_endpoint.replace('?f=pjson', '') + '/query'
+
+    params = {}
+    params['f'] = 'json'
+    params['geometryType'] = 'esriGeometryPolygon'
+    params['where'] = '1=1'
+    params['spatialRel'] = 'esriSpatialRelIntersects'
+    params['returnGeometry'] = False
+    params['outFields'] = out_fields
+
+    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if featureset['features']:
+        f = featureset['features'][0]
+        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+                                  'spatialReference': {'wkid': 4326}})
+        req = requests.post(url, data=params)
+        req.raise_for_status()
+
+        return [feat['attributes'] for feat in req.json()['features']]
+
+    return None
+
+
 def esri_count_groupby(layer_endpoint, aoi, count_fields):
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
@@ -543,6 +567,10 @@ def buffer_to_dist(featureset, distance):
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
     return new_featureset
+
+
+def get_presence(attributes, field):
+    return any(item[field] > 0 for item in attributes)
 
 
 # ------------------------- Calculation Functions --------------------------

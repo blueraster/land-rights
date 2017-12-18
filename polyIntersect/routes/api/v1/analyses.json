@@ -186,7 +186,7 @@
 			"buffer-10km-area", "buffer-10km-intersect-area",
 			"buffer-50km-area", "buffer-50km-intersect-area"]
 	},
-	"raster-loss": {
+	"soy": {
 		"graph": {
 			"aoi": ["geojson", "{user_json"],
 			"dissolve-aoi": ["dissolve", "aoi"],
@@ -213,5 +213,20 @@
 			"date-last-fire": ["get_date_from_timestamp", "timestamp-last-fire"]
 		},
 		"outputs": ["counts-by-month", "count-last-30days", "date-last-fire"]
+	},
+	"regions": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+	        "reference-data": ["esri_attributes", "{layer_url}", "{user_json}",
+	        	"{out_fields}", "{where}", "{token}"],
+			"south-america": ["get_presence", "reference-data", "FID_south_america"],
+			"southeast-asia": ["get_presence", "reference-data", "FID_southeast_asia"],
+			"brazil-legal-amazon": ["get_presence", "reference-data", "FID_brazil_legal_amazon"],
+			"brazil-biomes": ["get_presence", "reference-data", "FID_brazil_biomes"],
+			"brazil-cerrado-biome": ["get_presence", "reference-data", "FID_cerrado"],
+			"indonesia": ["get_presence", "reference-data", "FID_indonesia"]
+		},
+		"outputs": ["south-america", "southeast-asia", "brazil-legal-amazon", "brazil-biomes", 
+			    "brazil-cerrado-biome", "indonesia"]
 	}
 }

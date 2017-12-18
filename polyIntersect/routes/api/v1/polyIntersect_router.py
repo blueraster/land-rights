@@ -45,8 +45,6 @@ def create_dag_from_json(graphJson):
             graph[k] = tuple([analysis_funcs.json2ogr] + func_args)
         elif func_name == 'esri:server':
             graph[k] = tuple([analysis_funcs.esri_server2ogr] + func_args)
-        elif func_name == 'esri:imageserver':
-            graph[k] = tuple([analysis_funcs.esri_server2histo] + func_args)
         elif func_name == 'cartodb':
             graph[k] = tuple([analysis_funcs.cartodb2ogr] + func_args)
         else:
