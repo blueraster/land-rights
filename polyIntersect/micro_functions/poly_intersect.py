@@ -23,7 +23,7 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'esri_server2ogr', 'get_species_count', 'esri_server2histo',
            'esri_count_groupby', 'cartodb2ogr', 'esri_count_30days',
            'esri_last_instance', 'erase', 'get_date_from_timestamp',
-           'get_feature_count', 'test_ip']
+           'get_feature_count', 'test_ip', 'esri_attributes', 'get_presence']
 
 HA_CONVERSION = 10000
 t0 = 0

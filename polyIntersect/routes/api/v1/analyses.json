@@ -218,7 +218,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["esri_attributes", "{layer_url}", "{user_json}",
-	        	"{out_fields}", "{where}", "{token}"],
+	        	"{out_fields}"],
 			"south-america": ["get_presence", "reference-data", "FID_south_america"],
 			"southeast-asia": ["get_presence", "reference-data", "FID_southeast_asia"],
 			"brazil-legal-amazon": ["get_presence", "reference-data", "FID_brazil_legal_amazon"],
