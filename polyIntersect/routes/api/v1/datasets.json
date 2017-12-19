@@ -4,8 +4,8 @@
 		"category": "name",
 		"field": ""
 	},
-	"idn-legal-classifications": {
-		"id": "da106d6a-86e3-43a1-b9af-f609c6b543d2",
+	"idn-legal": {
+		"id": "e0c771b1-7ab1-489b-834c-d90bd6b23a63",
 		"category": "lc_general",
 		"field": ""
 	},
@@ -25,7 +25,7 @@
 		"field": ""
 	},
 	"plantations-by-type": {
-		"id": "1ec7d5e9-0407-4a55-9a4a-73cf91a1762a",
+		"id": "c1f35267-39ce-4b7e-8d4c-295bc1888ee6",
 		"category": "spec_simp",
 		"field": "",
 		"where": "type_text = 'Large industrial plantation'"
@@ -61,7 +61,7 @@
 		"field": ""
 	},
 	"soy": {
-		"id": "473eeb03-0202-4808-b46d-34a2c7d070b4",
+		"id": "c1ad49a5-eae8-4667-8af0-50db3a0ce32c",
 		"category": "",
 		"field": ""
 	},
@@ -106,8 +106,8 @@
 		"field": ""
 	},
 	"prodes": {
-		"id": "a5d016e9-3185-4088-b780-cbdaac724c0d",
-		"category": "",
+		"id": "747ee67e-262f-4a34-abce-48a6932df066",
+		"category": "ano",
 		"field": ""
 	},
 	"gadm": {

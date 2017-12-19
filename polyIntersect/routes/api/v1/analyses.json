@@ -20,7 +20,7 @@
 			"aoi": ["geojson", "{user_json}"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}", "{where}", "{token}"],
-	        "dissolve-data": ["dissolve", "reference-data"],
+	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
 	        "aoi-prj": ["project_local", "aoi"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
