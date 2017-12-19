@@ -188,11 +188,10 @@
 	},
 	"soy": {
 		"graph": {
-			"aoi": ["geojson", "{user_json"],
-			"dissolve-aoi": ["dissolve", "aoi"],
-			"aoi-prj": ["project_local", "dissolve-aoi"],
+			"aoi": ["geojson", "{user_json}"],
+			"aoi-prj": ["project_local", "aoi"],
 			"aoi-area": ["get_area", "aoi-prj"],
-			"histograms": ["esri_server2histo", "{layer_url}", "aoi"],
+			"histograms": ["esri_server2histo", "{layer_url}", "{user_json}"],
 			"loss-area": ["get_histo_loss_area", "histograms"],
 			"pre2001-area": ["get_histo_pre2001_area", "histograms"],
 			"total-area": ["get_histo_total_area", "histograms"]
