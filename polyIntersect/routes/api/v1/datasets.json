@@ -124,5 +124,10 @@
 		"id": "e900e58b-f22c-467b-898f-945feddafe04",
 		"category": "FID_indonesia,FID_cerrado,FID_brazil_legal_amazon,FID_brazil_biomes,FID_south_america,FID_southeast_asia",
 		"field": ""
+	},
+	"primary-forest": {
+		"id": "79133ed6-0999-494a-9d3d-f160eb993331",
+		"category": "",
+		"field": ""
 	}
 }
