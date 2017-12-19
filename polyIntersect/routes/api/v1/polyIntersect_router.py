@@ -107,9 +107,6 @@ def execute_model(analysis, dataset, user_json, geojson2):
             else:
                 raise ValueError('GFW dataset endpoint not supported')
 
-            # REMOVE WHEN FIRES MOVED TO PROD
-            if 'Fires' in layer_url:
-                layer_url = layer_url.replace('gis-gfw', 'gfw-staging')
         except Exception as e:
             raise ValueError((str(e), requests.get(dataset_url).text))
     else:
@@ -139,7 +136,7 @@ def execute_model(analysis, dataset, user_json, geojson2):
     return response
 
 
-@endpoints.route('/ANALYSIS_KEY/hello',
+@endpoints.route('/geom/hello',
                  strict_slashes=False, methods=['GET', 'POST'])
 def hello():
     request.json
