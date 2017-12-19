@@ -15,13 +15,11 @@ install:
   - source activate gfw-api
 
   # Dependencies for lint checking only
-  - conda install flake8
   - conda install pytest
 
   - python setup.py develop --no-deps
 
 script:
-    - flake8 polyIntersect
     - py.test tests --verbose
 
 notifications:
