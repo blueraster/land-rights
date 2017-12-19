@@ -25,7 +25,7 @@
 	        "aoi-prj": ["project_local", "aoi"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "aoi-area": ["get_area", "aoi-prj"],
-	        "intersect-area": ["get_area", "intersect-geom-prj"]
+	        "intersect-area": ["get_area", "intersect-geom-prj", "{category}"]
 		},
 		"outputs": ["intersect-geom", "aoi-area", "intersect-area"]
 	},

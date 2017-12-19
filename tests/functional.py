@@ -86,6 +86,6 @@ if __name__ == '__main__':
     analysis = os.environ['ANALYSIS']
     dataset = sys.argv[1]
     test_hello_local()
-    test_hello_control_tower()
+    #test_hello_control_tower()
     test_local()
-    test_control_tower()
+    #test_control_tower()
