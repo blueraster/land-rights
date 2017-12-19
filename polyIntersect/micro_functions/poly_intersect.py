@@ -100,7 +100,7 @@ def bbox(f):
              [x1, y1]]]
 
 
-@lru_cache(5)
+# @lru_cache(5)
 def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
 
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
