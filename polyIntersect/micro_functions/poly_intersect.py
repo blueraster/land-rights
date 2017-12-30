@@ -24,7 +24,8 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'esri_count_groupby', 'cartodb2ogr', 'esri_count_30days',
            'esri_last_instance', 'erase', 'get_date_from_timestamp',
            'get_feature_count', 'test_ip', 'esri_attributes', 'get_presence',
-           'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area']
+           'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area',
+           'get_area_by_attributes', 'get_geom_by_attributes']
 
 HA_CONVERSION = 10000
 t0 = 0
@@ -173,7 +174,10 @@ def esri_server2histo(layer_endpoint, aoi):
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
-        histograms = req.json()['histograms'][0]['counts']
+        try:
+            histograms = req.json()['histograms'][0]['counts']
+        except Exception as e:
+            raise ValueError('{} --- {}'.format(e, req.text))
 
     return histograms
 
@@ -572,6 +576,23 @@ def buffer_to_dist(featureset, distance):
 
 def get_presence(attributes, field):
     return any(item[field] > 0 for item in attributes)
+
+
+def get_area_by_attributes(featureset, posfields, negfields):
+    return sum([f['geometry'].area for f in featureset
+                if all(f['properties'][field] > 0 for f in posfields.split(','))
+                and all(f['properties'][field] < 0 for f in negfields.split(','))])
+
+
+def get_geom_by_attributes(featureset, posfields, negfields):
+    features = [f for f in featureset
+                if all(f['properties'][field] > 0 for f in posfields.split(','))
+                and all(f['properties'][field] < 0 for f in negfields.split(','))]
+    new_featureset = dict(type=featureset['type'],
+                          features=features)
+    if 'crs' in featureset.keys():
+        new_featureset['crs'] = featureset['crs']
+    return new_featureset
 
 
 # ------------------------- Calculation Functions --------------------------

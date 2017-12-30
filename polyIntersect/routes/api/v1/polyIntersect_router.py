@@ -136,7 +136,7 @@ def execute_model(analysis, dataset, user_json, geojson2):
     return response
 
 
-@endpoints.route('/geom/hello',
+@endpoints.route('/ANALYSIS_KEY/hello',
                  strict_slashes=False, methods=['GET', 'POST'])
 def hello():
     request.json
