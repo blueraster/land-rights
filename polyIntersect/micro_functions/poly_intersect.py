@@ -579,15 +579,19 @@ def get_presence(attributes, field):
 
 
 def get_area_by_attributes(featureset, posfields, negfields):
-    return sum([f['geometry'].area for f in featureset
-                if all(f['properties'][field] > 0 for f in posfields.split(','))
-                and all(f['properties'][field] < 0 for f in negfields.split(','))])
+    posfields = posfields.split(',') if posfields else []
+    negfields = negfields.split(',') if negfields else []
+    return sum([f['geometry'].area for f in featureset['features']
+                if all(f['properties'][field] > 0 for field in posfields)
+                and all(f['properties'][field] < 0 for field in negfields)])
 
 
 def get_geom_by_attributes(featureset, posfields, negfields):
-    features = [f for f in featureset
-                if all(f['properties'][field] > 0 for f in posfields.split(','))
-                and all(f['properties'][field] < 0 for f in negfields.split(','))]
+    posfields = posfields.split(',') if posfields else []
+    negfields = negfields.split(',') if negfields else []
+    features = [f for f in featureset['features']
+                if all(f['properties'][field] > 0 for field in posfields)
+                and all(f['properties'][field] < 0 for field in negfields)]
     new_featureset = dict(type=featureset['type'],
                           features=features)
     if 'crs' in featureset.keys():

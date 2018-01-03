@@ -129,5 +129,10 @@
 		"id": "79133ed6-0999-494a-9d3d-f160eb993331",
 		"category": "",
 		"field": ""
+	},
+	"palm-risk-union": {
+		"id": "5eadbc55-0a44-41f4-90be-f0e36b2e5d03",
+		"category": "FID_plantation,FID_wdpa,FID_peat,FID_forest_cover_coverage,FID_forest_cover",
+		"field": ""
 	}
 }
