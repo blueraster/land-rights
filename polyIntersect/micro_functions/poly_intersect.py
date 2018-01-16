@@ -15,6 +15,7 @@ from shapely.geometry import shape, mapping
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.collection import GeometryCollection
+from shapely.geometry.point import Point
 from shapely.ops import unary_union, transform
 
 
@@ -324,7 +325,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     q = 'SELECT {fields} FROM {table} WHERE {where}'
     params = {'q': q.format(fields=','.join(fields), table=table,
               where=where_clause)}
-
+    
     try:
         req = requests.get(url, params=params)
         req.raise_for_status()
@@ -477,6 +478,8 @@ def project_features(featureset, project):
             geom = MultiPolygon(f['geometry'])
         elif isinstance(f['geometry'], GeometryCollection):
             geom = GeometryCollection(f['geometry'])
+        elif isinstance(f['geometry'], Point):
+            geom = Point(f['geometry'])
 
         projected_geom = transform(project, geom)
         new_feat = dict(properties=f['properties'],

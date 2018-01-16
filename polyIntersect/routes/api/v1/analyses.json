@@ -269,5 +269,14 @@
 					"intersect-geom-forest", "intersect-geom-noforest",
 					"intersect-geom-forest-peat", "intersect-geom-noforest-peat",
 					"intersect-geom-forest-wdpa", "intersect-geom-noforest-wdpa"]
+	},
+	"buffer": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+	        "aoi-prj": ["project_local", "aoi"],
+	        "aoi-buffer-prj": ["buffer_to_dist", "aoi-prj", "{distance}"],
+	        "aoi-buffer": ["project_global", "aoi-buffer-prj"]
+	    },
+	    "outputs": ["aoi-buffer"]
 	}
 }
