@@ -325,7 +325,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     q = 'SELECT {fields} FROM {table} WHERE {where}'
     params = {'q': q.format(fields=','.join(fields), table=table,
               where=where_clause)}
-    
+
     try:
         req = requests.get(url, params=params)
         req.raise_for_status()
@@ -683,10 +683,10 @@ def get_histo_loss_area(histograms, forest_density=30):
     if forest_density not in density_map.keys():
         raise ValueError('Forest density must be one of the following:\n' +
                          '  10, 15, 20, 25, 30, 50, 75')
-    year_indices = [range(density_map[forest_density] + i + 1, 130, 15)
-                    for i in range(14)]
-    histo_area_loss = [sum([histograms[i] for i in indices])
-                       for indices in year_indices]
+    year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 130, 15)
+                    for i in range(14)}
+    histo_area_loss = {yr: sum([histograms[i] for i in indices])
+                       for yr, indices in year_indices.items()}
 
     return histo_area_loss
 
@@ -706,9 +706,9 @@ def get_histo_total_area(histograms):
     '''
     Returns total area of histo within the aoi
     '''
-    year_indices = [range(i, 130, 15) for i in range(14)]
-    histo_area_total = [sum([histograms[i] for i in indices])
-                        for indices in year_indices]
+    year_indices = {(i+2001): range(i, 130, 15) for i in range(14)}
+    histo_area_total = {yr: sum([histograms[i] for i in indices])
+                        for yr, indices in year_indices.items()}
 
     return histo_area_total
 
