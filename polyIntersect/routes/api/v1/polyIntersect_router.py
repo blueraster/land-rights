@@ -64,7 +64,7 @@ def compute(graph, outputs):
     return final_output
 
 
-def execute_model(analysis, dataset, user_json, geojson2):
+def execute_model(analysis, dataset, user_json, geojson2, distance):
 
     # read config files
     with open(path.join(path.dirname(__file__), 'analyses.json')) as f:
@@ -124,7 +124,8 @@ def execute_model(analysis, dataset, user_json, geojson2):
                            category=category,
                            field=field,
                            where=where,
-                           token=token) for val in vals]
+                           token=token,
+                           distance=distance) for val in vals]
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 
