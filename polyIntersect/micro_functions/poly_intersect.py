@@ -129,7 +129,7 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
     # iterate through aoi features (Esri does not accept multipart polygons
     # as a spatial filter, and the aoi features may be too far apart to combine
     # into one bounding box)
-    featureset = {}
+    featureset = {'type': 'FeatureCollection', 'features': []}
     objectids = []
     for f in json.loads(aoi)['features']:
         params['geometry'] = str({'rings': bbox(f),
@@ -142,13 +142,10 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
             raise ValueError(req.text)
 
         # append response to full dataset, except features already included
-        if featureset:
-            for h in response['features']:
-                if h['properties']['objectid'] not in objectids:
-                    featureset['features'].append(h)
-                    objectids.append(h['properties']['objectid'])
-        else:
-            featureset = response
+        for h in response['features']:
+            if h['properties']['objectid'] not in objectids:
+                featureset['features'].append(h)
+                objectids.append(h['properties']['objectid'])
 
     return featureset
 
@@ -368,9 +365,10 @@ def dissolve(featureset, field=None):
             for key, group in itertools.groupby(features, key=sort_func):
                 properties, geoms = zip(*[(f['properties'],
                                           f['geometry']) for f in group])
-                new_features.append(dict(type='Feature',
-                                         geometry=unary_union(geoms),
-                                         properties=properties[0]))
+                if geoms and all(not geom is None for geom in geoms):
+                    new_features.append(dict(type='Feature',
+                                             geometry=unary_union(geoms),
+                                             properties=properties[0]))
 
         else:
             geoms = [f['geometry'] for f in featureset['features']]

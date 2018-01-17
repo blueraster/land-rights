@@ -129,6 +129,12 @@ def execute_model(analysis, dataset, user_json, geojson2, distance):
         graph[key] = vals
     outputs = analyses[analysis]['outputs']
 
+    # catch empty geometries
+    if len(json.loads(user_json)['features']) == 0:
+        data = {key: {"type": "FeatureCollection", "features": []}
+                if 'geom' in key else None for key in outputs}
+        return jsonify(data)
+
     # create and compute graph
     dag = create_dag_from_json(json.dumps(graph))
     data = compute(dag, outputs)
