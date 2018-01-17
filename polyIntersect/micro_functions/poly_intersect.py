@@ -143,9 +143,10 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
 
         # append response to full dataset, except features already included
         for h in response['features']:
-            if h['properties']['objectid'] not in objectids:
+            feat_id = ','.join(h['properties'].values())
+            if h['properties'][feat_id] not in objectids:
                 featureset['features'].append(h)
-                objectids.append(h['properties']['objectid'])
+                objectids.append(feat_id)
 
     return featureset
 
