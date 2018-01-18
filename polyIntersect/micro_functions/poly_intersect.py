@@ -174,7 +174,9 @@ def esri_server2histo(layer_endpoint, aoi):
         req = requests.post(url, data=params)
         req.raise_for_status()
         try:
-            histograms = req.json()['histograms'][0]['counts']
+            histograms = req.json()['histograms']
+            if histograms:
+                histograms = histograms[0]['counts']
         except Exception as e:
             raise ValueError('{} --- {}'.format(e, req.text))
 
