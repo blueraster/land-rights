@@ -178,6 +178,9 @@ def esri_server2histo(layer_endpoint, aoi):
         except Exception as e:
             raise ValueError('{} --- {}'.format(e, req.text))
 
+    # if trailing zeros were cut, return them
+    if len(histograms) < 135:
+        histograms += [0]*(135 - len(histograms))
     return histograms
 
 
