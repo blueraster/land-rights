@@ -366,9 +366,15 @@ def dissolve(featureset, field=None):
             for key, group in itertools.groupby(features, key=sort_func):
                 properties, geoms = zip(*[(f['properties'],
                                           f['geometry']) for f in group])
-                if geoms and all(not geom is None for geom in geoms):
+                if geoms and not any(geom is None for geom in geoms):
+                    try:
+                        new_geom = unary_union(geoms)
+                    except Exception as e:
+                        new_geom = unary_union([geom if geom.is_valid
+                                                else geom.buffer(0)
+                                                for geom in geoms])
                     new_features.append(dict(type='Feature',
-                                             geometry=unary_union(geoms),
+                                             geometry=new_geom,
                                              properties=properties[0]))
 
         else:
