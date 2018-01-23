@@ -689,12 +689,14 @@ def get_histo_loss_area(histograms, forest_density=30):
     '''
     Returns the sum of tree cover loss for years 2001 through 2014
     '''
-    density_map = {0: 10, 10: 25, 15: 40, 20: 55,
-                   25: 70, 30: 85, 50: 100, 75: 115}
+    # density_map = {0: 10, 10: 25, 15: 40, 20: 55,
+    #                25: 70, 30: 85, 50: 100, 75: 115}
+    density_map = {10: 15, 15: 30, 20: 45, 25: 60,
+                   30: 75, 50: 90, 75: 105, 100: 120}
     if forest_density not in density_map.keys():
         raise ValueError('Forest density must be one of the following:\n' +
                          '  10, 15, 20, 25, 30, 50, 75')
-    year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 130, 15)
+    year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 135, 15)
                     for i in range(14)}
     histo_area_loss = {yr: sum([histograms[i] for i in indices])
                        for yr, indices in year_indices.items()}
@@ -707,7 +709,7 @@ def get_histo_pre2001_area(histograms):
     Returns the sum of histo on tree cover loss, aggregated on years prior to
     2001
     '''
-    year_indices = range(10, 130, 15)
+    year_indices = range(15, 135, 15)
     histo_area_loss = sum([histograms[i] for i in year_indices])
 
     return histo_area_loss
@@ -717,7 +719,7 @@ def get_histo_total_area(histograms):
     '''
     Returns total area of histo within the aoi
     '''
-    year_indices = {(i+2001): range(i, 130, 15) for i in range(14)}
+    year_indices = {(i+2001): range(i, 135, 15) for i in range(14)}
     histo_area_total = {yr: sum([histograms[i] for i in indices])
                         for yr, indices in year_indices.items()}
 
