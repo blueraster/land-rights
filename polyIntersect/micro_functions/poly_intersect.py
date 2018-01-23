@@ -698,7 +698,7 @@ def get_histo_loss_area(histograms, forest_density=30):
                          '  10, 15, 20, 25, 30, 50, 75')
     year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 135, 15)
                     for i in range(14)}
-    histo_area_loss = {yr: sum([histograms[i] for i in indices])
+    histo_area_loss = {yr: 0.09 * sum([histograms[i] for i in indices])
                        for yr, indices in year_indices.items()}
 
     return histo_area_loss
@@ -710,7 +710,7 @@ def get_histo_pre2001_area(histograms):
     2001
     '''
     year_indices = range(15, 135, 15)
-    histo_area_loss = sum([histograms[i] for i in year_indices])
+    histo_area_loss = 0.09 * sum([histograms[i] for i in year_indices])
 
     return histo_area_loss
 
@@ -720,7 +720,7 @@ def get_histo_total_area(histograms):
     Returns total area of histo within the aoi
     '''
     year_indices = {(i+2001): range(i, 135, 15) for i in range(14)}
-    histo_area_total = {yr: sum([histograms[i] for i in indices])
+    histo_area_total = {yr: 0.09 * sum([histograms[i] for i in indices])
                         for yr, indices in year_indices.items()}
 
     return histo_area_total
