@@ -26,7 +26,8 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'esri_last_instance', 'erase', 'get_date_from_timestamp',
            'get_feature_count', 'test_ip', 'esri_attributes', 'get_presence',
            'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area',
-           'get_area_by_attributes', 'get_geom_by_attributes']
+           'get_area_by_attributes', 'get_geom_by_attributes', 'pad_counts',
+           'vals_by_year']
 
 HA_CONVERSION = 10000
 t0 = 0
@@ -763,6 +764,31 @@ def get_feature_count(intersection, field):
         return counts
     else:
         return len(intersection['features'])
+
+
+def pad_counts(counts, start_yr, end_yr):
+    '''
+    Pad result object for fires counts by month or year with zeros
+    for all missing months or years
+    '''
+    if counts and '-' in counts.keys():
+        new_counts = {'{}-{}'.format(yr, mn): 0 for mn in range(1, 13)
+                      for yr in range(int(start_yr), int(end_yr)+1)}
+    else:
+        new_counts = {str(yr): 0 for yr in range(int(start_yr),
+                                                 int(end_yr)+1)}
+    for key in new_counts.keys():
+        if key in counts.keys():
+            new_counts[key] = counts[key]
+    return new_counts
+
+
+def vals_by_year(val, start_yr, end_yr):
+    '''
+    Store value in a by-year object (for consistency with the rest
+    of the Palm Risk tool)
+    '''
+    return {str(yr): val for yr in range(int(start_yr), int(end_yr)+1)}
 
 
 def is_valid(analysis_method):

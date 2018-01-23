@@ -200,7 +200,8 @@
 	},
 	"count-by-year": {
 		"graph": {
-			"counts-by-year": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"]
+			"counts-by-year-sparse": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"],
+			"counts-by-year": ["pad_counts", "counts-by-year-sparse", "2001", "2016"]
 		},
 		"outputs": ["counts-by-year"]
 	},
@@ -243,8 +244,10 @@
 	        	"FID_plantation,FID_peat", ""],
 	        "plantation-area-wdpa": ["get_area_by_attributes", "intersect-geom-prj",
 	        	"FID_plantation,FID_wdpa", ""],
-	        "peat-area": ["get_area_by_attributes", "intersect-geom-prj", "FID_peat", ""],
-	        "wdpa-area": ["get_area_by_attributes", "intersect-geom-prj", "FID_wdpa", ""],
+	        "peat-area-val": ["get_area_by_attributes", "intersect-geom-prj", "FID_peat", ""],
+	        "peat-area": ["vals_by_year", "peat-area-val", "2002", "2016"],
+	        "wdpa-area-val": ["get_area_by_attributes", "intersect-geom-prj", "FID_wdpa", ""],
+	        "wdpa-area": ["vals_by_year", "wdpa-area-val", "2002", "2016"],
 	        "geom-forest": ["get_geom_by_attributes", "intersect-geom",
 	        	"FID_forest_cover", "FID_plantation"],
 	        "intersect-geom-forest": ["dissolve", "geom-forest"],
