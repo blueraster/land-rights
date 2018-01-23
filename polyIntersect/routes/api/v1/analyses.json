@@ -200,7 +200,7 @@
 	},
 	"count-by-year": {
 		"graph": {
-			"counts-by-year": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"],
+			"counts-by-year": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"]
 		},
 		"outputs": ["counts-by-year"]
 	},
