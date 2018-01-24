@@ -595,9 +595,10 @@ def get_presence(attributes, field):
 def get_area_by_attributes(featureset, posfields, negfields):
     posfields = posfields.split(',') if posfields else []
     negfields = negfields.split(',') if negfields else []
-    return sum([f['geometry'].area for f in featureset['features']
-                if all(f['properties'][field] > 0 for field in posfields)
-                and all(f['properties'][field] < 0 for field in negfields)])
+    area_m = sum([f['geometry'].area for f in featureset['features']
+                  if all(f['properties'][field] > 0 for field in posfields)
+                  and all(f['properties'][field] < 0 for field in negfields)])
+    return area_m / HA_CONVERSION
 
 
 def get_geom_by_attributes(featureset, posfields, negfields):
