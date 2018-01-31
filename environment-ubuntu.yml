@@ -125,11 +125,13 @@ dependencies:
 - util-linux=2.21=0
 - pip:
   - backports.functools-lru-cache==1.4
-  - ctregistermicroserviceflask==0.3.0
+  - ctregistermicroserviceflask==0.3.8
   - geojson==1.3.5
   - geomet==0.1.2
   - gevent==1.2.2
   - greenlet==0.4.12
   - gunicorn==19.7.1
+  - style==1.1.0
+  - update==0.0.1
 prefix: /media/ubuntu/171b6312-1822-418f-b65a-10b17353bd81/miniconda3/envs/gfw-api
 
