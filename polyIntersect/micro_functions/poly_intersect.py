@@ -31,6 +31,11 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
 
 HA_CONVERSION = 10000
 t0 = 0
+COMPLEXITY_THRESHOLDS = {
+    'vertices': 1000,
+    'width': 1.0,
+    'height': 1.0
+}
 
 
 def test_ip():
@@ -168,23 +173,23 @@ def esri_server2histo(layer_endpoint, aoi):
     params['where'] = '1=1'
 
     featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
-    if featureset['features']:
-        f = featureset['features'][0]
+    # if featureset['features']:
+    #     f = featureset['features'][0]
+    histogram = [0] * 135
+    for f in featureset['features']:
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
         try:
-            histograms = req.json()['histograms']
-            if histograms:
-                histograms = histograms[0]['counts']
+            response = req.json()['histograms']
+            if response:
+                for i, count in enumerate(response[0]['counts']):
+                    histogram[i] += count
         except Exception as e:
             raise ValueError('{} --- {}'.format(e, req.text))
 
-    # if trailing zeros were cut, return them
-    if len(histograms) < 135:
-        histograms += [0]*(135 - len(histograms))
-    return histograms
+    return histogram
 
 
 def esri_attributes(layer_endpoint, aoi, out_fields):
@@ -199,16 +204,22 @@ def esri_attributes(layer_endpoint, aoi, out_fields):
     params['outFields'] = out_fields
 
     featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
-    if featureset['features']:
-        f = featureset['features'][0]
+    objectids = []
+    attributes = []
+    for f in featureset['features']:
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
 
-        return [feat['attributes'] for feat in req.json()['features']]
+        # return [feat['attributes'] for feat in req.json()['features']]
+        for h in req.json()['features']:
+            feat_id = ','.join([str(prop) for prop in h['attributes'].values()])
+            if feat_id not in objectids:
+                attributes.append(h['attributes'])
+                objectids.append(feat_id)
 
-    return None
+    return attributes
 
 
 def esri_count_groupby(layer_endpoint, aoi, count_fields):
@@ -229,21 +240,26 @@ def esri_count_groupby(layer_endpoint, aoi, count_fields):
     }])
 
     featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
-    if featureset['features']:
-        f = featureset['features'][0]
+    counts = {}
+    for f in featureset['features']:
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
         try:
-            counts = {'-'.join([str(item['attributes'][field]) for field in
-                                count_fields]): item['attributes']['count']
-                      for item in req.json()['features']}
+            f_counts = {'-'.join([str(item['attributes'][field]) for field in
+                                  count_fields]): item['attributes']['count']
+                        for item in req.json()['features']}
+            for key, val in f_counts.items():
+                if not key in counts.keys():
+                    counts[key] = val
+                else:
+                    counts[key] += val
 
-            return counts
         except Exception as e:
             raise ValueError((str(e), url, params, req.text))
-    return None
+
+    return counts
 
 
 def esri_count_30days(layer_endpoint, aoi, date_field):
@@ -260,16 +276,15 @@ def esri_count_30days(layer_endpoint, aoi, date_field):
     params['returnCountOnly'] = True
 
     featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
-    if featureset['features']:
-        f = featureset['features'][0]
+    count = 0
+    for f in featureset['features']:
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
-        counts = req.json()['count']
+        count += req.json()['count']
 
-        return counts
-    return None
+    return count
 
 
 def esri_last_instance(layer_endpoint, aoi, field):
@@ -286,8 +301,8 @@ def esri_last_instance(layer_endpoint, aoi, field):
     params['returnDistinctValues'] = True
 
     featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
-    if featureset['features']:
-        f = featureset['features'][0]
+    last_instance = None
+    for f in featureset['features']:
         params['geometry'] = str({'rings': f['geometry']['coordinates'],
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
@@ -295,12 +310,16 @@ def esri_last_instance(layer_endpoint, aoi, field):
         try:
             instances = [item['attributes'][field] for item in
                          req.json()['features']]
-            last_instance = instances[-1] if instances else None
+            if instances:
+                if not last_instance:
+                    last_instance = instances[-1]
+                elif instances[-1] > last_instance:
+                    last_instance = instances[-1]
 
-            return last_instance
         except Exception as e:
             raise ValueError((str(e), url, params, req.text))
-    return None
+
+    return last_instance
 
 
 @lru_cache(5)
@@ -318,38 +337,97 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
         if field:
             fields.append('{field} as {field}'.format(field=field))
 
-    where_clause = "ST_Intersects(ST_Buffer({},0),the_geom)"
-    where_clause = where_clause.format("ST_GeomFromText('{}',4326)".format(
-        wkt.dumps({'type': 'MultiPolygon',
-                   'coordinates': [bbox(f) for f in featureset['features']]}
-                  )))
-    if where and not where == '1=1':
-        where_clause += 'AND {}'.format(where)
+    temp = "ST_Intersects(ST_Buffer(ST_GeomFromText('{}',4326),0),the_geom)"
+    features = []
+    objectids = []
+    for f in featureset['features']:
+        where_clause = temp.format(wkt.dumps({'type': 'Polygon',
+                                              'coordinates': bbox(f)}))
+        if where and not where == '1=1':
+            where_clause += 'AND {}'.format(where)
 
-    q = 'SELECT {fields} FROM {table} WHERE {where}'
-    params = {'q': q.format(fields=','.join(fields), table=table,
-              where=where_clause)}
+        q = 'SELECT {fields} FROM {table} WHERE {where}'
+        params = {'q': q.format(fields=','.join(fields), table=table,
+                  where=where_clause)}
 
-    try:
-        req = requests.get(url, params=params)
-        req.raise_for_status()
-    except Exception as e:
-        raise ValueError((e, [bbox(f) for f in featureset['features']]))
+        try:
+            req = requests.get(url, params=params)
+            req.raise_for_status()
+        except Exception as e:
+            raise ValueError((e, [bbox(f) for f in featureset['features']]))
 
-    response = json.loads(req.text)['rows']
+        response = json.loads(req.text)['rows']
+        features += [{
+            'type': 'Feature',
+            'geometry': json.loads(h['geometry']),
+            'properties': {field: h[field] for field in out_fields if field}
+        } for h in response]
+
     features = {
         'type': 'FeatureCollection',
-        'features': [{
-            'type': 'Feature',
-            'geometry': json.loads(feat['geometry']),
-            'properties': {field: feat[field] for field in out_fields if field}
-        } for feat in response]
+        'features': features
     }
     global t0
     t0 = time()
     featureset = json2ogr(features)
     # raise ValueError(time()-t0)
     return featureset
+
+
+def check_polygon_complexity(f):
+    '''
+    Check if number of vertices or width or height of bounding box exceed
+    thresholds. If they do, returns two revised bounding boxes (Left/Upper
+    and Right/Bottom) for intersecting with the geometry
+    '''
+    bb = bbox(f)[0]
+    if (bb[1][0] - bb[0][0] > COMPLEXITY_THRESHOLDS['width'] or
+            bb[2][1] - bb[1][1] > COMPLEXITY_THRESHOLDS['height'] or
+            sum([len(r) for r in f['geometry']['coordinates']]) >
+            COMPLEXITY_THRESHOLDS['vertices']):
+        if bb[1][0] - bb[0][0] > bb[2][1] - bb[1][1]:
+            half_line = bb[0][0] + (bb[1][0] - bb[0][0]) / 2
+            return [[bb[0], [half_line, bb[1][1]],
+                    [half_line, bb[2][1]], bb[3], bb[4]],
+                   [[half_line, bb[0][1]], bb[1], bb[2],
+                    [half_line, bb[3][1]], [half_line, bb[4][1]]]]
+        else:
+            half_line = bb[1][1] + (bb[2][1] - bb[1][1]) / 2
+            return [[bb[0], [bb[1][0], half_line],
+                    [bb[2][0], half_line], bb[3], bb[4]],
+                   [[bb[0][0], half_line], bb[1], bb[2],
+                    [bb[3][0], half_line], [bb[4][0], half_line]]]
+
+    return None
+
+
+def split_polygons(f):
+    '''
+    Split complex geometry in half until they are below vertex and bounding
+    box size constraints
+    '''
+    return f
+
+
+def split_multipolygons(f):
+    '''
+    Split multipolygon into coterminous polygons
+    '''
+    return f
+
+
+def split(featureset):
+    '''
+    First split all multipolygons into coterminous polygons. Then check each
+    against vertex and bounding box size constraints, and split into multiple
+    polygons using recursive halving if necessary
+    '''
+    new_features = []
+    for f in featureset['features']:
+        if f['type'] == 'MultiPolygon':
+            polygons = split_multipolygons(f['geometry'])
+            for poly in polygons:
+                if 
 
 
 def dissolve(featureset, field=None):
@@ -394,7 +472,10 @@ def dissolve(featureset, field=None):
                           features=new_features)
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
-    return new_featureset
+
+    split_featureset = split(new_featureset)
+
+    return split_featureset
 
 
 def index_featureset(featureset):
