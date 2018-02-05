@@ -11,7 +11,7 @@ import pyproj
 import numpy as np
 from time import time
 
-from shapely.geometry import shape, mapping
+from shapely.geometry import shape, mapping, box
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.collection import GeometryCollection
@@ -99,14 +99,20 @@ def explode(coords):
                 yield f
 
 
-def bbox(f):
+def bounds(f):
     x, y = zip(*list(explode(f['geometry']['coordinates'])))
-    x1, x2, y1, y2 = min(x), max(x), min(y), max(y)
-    return [[[x1, y1],
-             [x2, y1],
-             [x2, y2],
-             [x1, y2],
-             [x1, y1]]]
+    return min(x), max(x), min(y), max(y)
+
+
+def bbox(f):
+    return list(mapping(box(bounds(f)))['coordinates'])
+    # x, y = zip(*list(explode(f['geometry']['coordinates'])))
+    # x1, x2, y1, y2 = min(x), max(x), min(y), max(y)
+    # return [[[x1, y1],
+    #          [x2, y1],
+    #          [x2, y2],
+    #          [x1, y2],
+    #          [x1, y1]]]
 
 
 # @lru_cache(5)
@@ -363,57 +369,81 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
             'properties': {field: h[field] for field in out_fields if field}
         } for h in response]
 
-    features = {
+    featureset = json2ogr({
         'type': 'FeatureCollection',
         'features': features
-    }
+    })
     global t0
     t0 = time()
-    featureset = json2ogr(features)
     # raise ValueError(time()-t0)
     return featureset
 
 
-def check_polygon_complexity(f):
+def get_split_boxes(f):
     '''
     Check if number of vertices or width or height of bounding box exceed
     thresholds. If they do, returns two revised bounding boxes (Left/Upper
     and Right/Bottom) for intersecting with the geometry
     '''
-    bb = bbox(f)[0]
-    if (bb[1][0] - bb[0][0] > COMPLEXITY_THRESHOLDS['width'] or
-            bb[2][1] - bb[1][1] > COMPLEXITY_THRESHOLDS['height'] or
+    # bb = bbox(f)[0]
+    x1, y1, x2, y2 = bounds(f)
+    if (x2 - x1 > COMPLEXITY_THRESHOLDS['width'] or
+            y2 - y1 > COMPLEXITY_THRESHOLDS['height'] or
             sum([len(r) for r in f['geometry']['coordinates']]) >
             COMPLEXITY_THRESHOLDS['vertices']):
-        if bb[1][0] - bb[0][0] > bb[2][1] - bb[1][1]:
-            half_line = bb[0][0] + (bb[1][0] - bb[0][0]) / 2
-            return [[bb[0], [half_line, bb[1][1]],
-                    [half_line, bb[2][1]], bb[3], bb[4]],
-                   [[half_line, bb[0][1]], bb[1], bb[2],
-                    [half_line, bb[3][1]], [half_line, bb[4][1]]]]
+        if x2 - x1 > y2 - y1:
+            x_split = x1 + (x2 - x1) / 2
+            return [box(x1, y1, x_split, y2), box(x_split, y1, x2, y2)]
+            # return [[[bb[0], [half_line, y1],
+            #          [half_line, y2], bb[3], bb[4]]],
+            #        [[[half_line, bb[0][1]], bb[1], bb[2],
+            #          [half_line, bb[3][1]], [half_line, bb[4][1]]]]]
         else:
-            half_line = bb[1][1] + (bb[2][1] - bb[1][1]) / 2
-            return [[bb[0], [bb[1][0], half_line],
-                    [bb[2][0], half_line], bb[3], bb[4]],
-                   [[bb[0][0], half_line], bb[1], bb[2],
-                    [bb[3][0], half_line], [bb[4][0], half_line]]]
+            y_split = y1 + (y2 - y1) / 2
+            return [box(x1, y1, x2, y_split), box(x1, y_split, x2, y2)]
+            # return [[[bb[0], [x2, half_line],
+            #          [bb[2][0], half_line], bb[3], bb[4]]],
+            #        [[[x1, half_line], bb[1], bb[2],
+            #          [bb[3][0], half_line], [bb[4][0], half_line]]]]
 
     return None
 
 
-def split_polygons(f):
+def split_multipolygon(f):
+    '''
+    Split multipolygon into coterminous polygons
+    '''
+    new_features = [{'type': 'Feature',
+                     'properties': f['properties'],
+                     'geometry': poly} for poly in f['geometry']]
+    return new_features
+
+
+def split_polygon(f):
     '''
     Split complex geometry in half until they are below vertex and bounding
     box size constraints
     '''
-    return f
+    bbs = get_split_boxes(f)
+    new_features = []
+    if bbs:
+        for bb in bbs:
+            geom = f['geometry']
+            if not geom.is_valid:
+                geom = geom.buffer(0)
+            split_feat = {'type': 'Feature',
+                        'properties': f['properties'],
+                        'geometry': geom.intersection(bb)}
+            if split_feat['geometry'].type == 'MultiPolygon':
+                poly_feats = split_multipolygon(split_feat)
+                for h in poly_feats:
+                    new_features.extend(split_polygon(h))
+            else:
+                new_features.extend(split_polygon(split_feat))
+    else:
+        new_features.append(f)
 
-
-def split_multipolygons(f):
-    '''
-    Split multipolygon into coterminous polygons
-    '''
-    return f
+    return new_features
 
 
 def split(featureset):
@@ -424,10 +454,21 @@ def split(featureset):
     '''
     new_features = []
     for f in featureset['features']:
-        if f['type'] == 'MultiPolygon':
-            polygons = split_multipolygons(f['geometry'])
-            for poly in polygons:
-                if 
+        if f['geometry'].type == 'MultiPolygon':
+            poly_feats = split_multipolygon(f)
+            for h in poly_feats:
+                new_features.extend(split_polygon(h))
+        elif f['geometry'].type == 'Polygon':
+            new_features.extend(split_polygon(f))
+
+    new_featureset = dict(type=featureset['type'],
+                          features=new_features)
+    if 'crs' in featureset.keys():
+        new_featureset['crs'] = featureset['crs']
+
+    return new_featureset
+
+
 
 
 def dissolve(featureset, field=None):
@@ -561,26 +602,22 @@ def erase(featureset, erase_featureset):
     return new_featureset
 
 
-def project_features(featureset, project):
-    new_features = []
-    for f in featureset['features']:
-        if isinstance(f['geometry'], Polygon):
-            geom = Polygon(f['geometry'])
-        elif isinstance(f['geometry'], MultiPolygon):
-            geom = MultiPolygon(f['geometry'])
-        elif isinstance(f['geometry'], GeometryCollection):
-            geom = GeometryCollection(f['geometry'])
-        elif isinstance(f['geometry'], Point):
-            geom = Point(f['geometry'])
+def project_features(f, project):
+    if isinstance(f['geometry'], Polygon):
+        geom = Polygon(f['geometry'])
+    elif isinstance(f['geometry'], MultiPolygon):
+        geom = MultiPolygon(f['geometry'])
+    elif isinstance(f['geometry'], GeometryCollection):
+        geom = GeometryCollection(f['geometry'])
+    elif isinstance(f['geometry'], Point):
+        geom = Point(f['geometry'])
 
-        projected_geom = transform(project, geom)
-        new_feat = dict(properties=f['properties'],
-                        geometry=projected_geom,
-                        type='Feature')
-        new_features.append(new_feat)
+    projected_geom = transform(project, geom)
+    new_feat = dict(properties=f['properties'],
+                    geometry=projected_geom,
+                    type='Feature')
 
-    return dict(type=featureset['type'],
-                features=new_features)
+    return new_feat
 
 
 def project_local(featureset):
@@ -592,31 +629,37 @@ def project_local(featureset):
     name = 'urn:ogc:def:uom:EPSG::9102'
 
     # get cumulative centroid of all features
-    x, y = 0, 0
+    # x, y = 0, 0
+    new_features = []
     for f in featureset['features']:
         if isinstance(f['geometry'], GeometryCollection):
-            x += np.mean([geom_item.centroid.x for geom_item in f['geometry']])
-            y += np.mean([geom_item.centroid.y for geom_item in f['geometry']])
+            x = np.mean([geom_item.centroid.x for geom_item in f['geometry']])
+            y = np.mean([geom_item.centroid.y for geom_item in f['geometry']])
         else:
-            x += f['geometry'].centroid.x
-            y += f['geometry'].centroid.y
-    x = x / len(featureset['features']) if featureset['features'] else 0
-    y = y / len(featureset['features']) if featureset['features'] else 0
+            x = f['geometry'].centroid.x
+            y = f['geometry'].centroid.y
+    # x = x / len(featureset['features']) if featureset['features'] else 0
+    # y = y / len(featureset['features']) if featureset['features'] else 0
 
-    # define local projection
-    proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
-             +units=m +no_defs +R=6371000 '.format(y, x)
+        # define local projection
+        proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
+                 +units=m +no_defs +R=6371000 '.format(y, x)
 
-    # define projection transformation
-    project = partial(pyproj.transform,
-                      pyproj.Proj(init='epsg:4326'),
-                      pyproj.Proj(proj4))
+        # define projection transformation
+        project = partial(pyproj.transform,
+                          pyproj.Proj(init='epsg:4326'),
+                          pyproj.Proj(proj4))
 
-    # peoject features and add projection info
-    new_featureset = project_features(featureset, project)
-    new_featureset['crs'] = dict(type="name",
-                                 properties=dict(name=name,
-                                                 centroid=[x, y]))
+        # peoject features and add projection info
+        new_feat = project_feature(f, project)
+        new_feat['properties']['centroid'] = (x,y)
+        new_features.append(new_feat)
+
+    new_featureset = dict(type=featureset['type'],
+                          features=new_features,
+                          crs=dict(type="name",
+                                   properties=dict(name=name)))
+
     return new_featureset
 
 
@@ -628,18 +671,29 @@ def project_global(featureset):
         raise ValueError('Local projection must have crs info to reproject')
 
     name = 'EPSG:4326'
-    [x, y] = featureset['crs']['properties']['centroid']
+    # [x, y] = featureset['crs']['properties']['centroid']
 
-    proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
-             +units=m +no_defs +R=6371000 '.format(y, x)
+    new_features = []
+    for f in featureset['features']:
+        (x, y) = f['properties']['centroid']
 
-    project = partial(pyproj.transform,
-                      pyproj.Proj(proj4),
-                      pyproj.Proj(init='epsg:4326'))
+        proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \
+                 +units=m +no_defs +R=6371000 '.format(y, x)
 
-    new_featureset = project_features(featureset, project)
-    new_featureset['crs'] = dict(type="name",
-                                 properties=dict(name=name))
+        project = partial(pyproj.transform,
+                          pyproj.Proj(proj4),
+                          pyproj.Proj(init='epsg:4326'))
+
+        new_feat = project_features(f, project)
+        new_feat['properties'] = {key: val for key, val in
+                                  new_feat['properties'].items()
+                                  if not key == 'centroid'}
+        new_features.append(new_feat)
+
+    new_featureset = dict(type=featureset['type'],
+                          features=new_features,
+                          crs=dict(type="name",
+                                   properties=dict(name=name)))
     return new_featureset
 
 
@@ -715,22 +769,27 @@ def validate_featureset(featureset, fields=[None]):
 
 
 def get_area(featureset, field=None):
-    validate_featureset(featureset, [field])
+    # validate_featureset(featureset, [field])
 
     if field:
         area = {}
         for f in featureset['features']:
-            area[f['properties'][field]] = f['geometry'].area / HA_CONVERSION
+            A = f['geometry'].area / HA_CONVERSION
+            if f['properties'][field] in area.keys():
+                area[f['properties'][field]] += A
+            else:
+                area[f['properties'][field]] = A
     else:
         if featureset['features']:
-            area = featureset['features'][0]['geometry'].area / HA_CONVERSION
+            area = sum([f['geometry'].area / HA_CONVERSION
+                        for f in featureset['features']])
         else:
             area = 0
     return area
 
 
 def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
-    validate_featureset(featureset, [int_field, aoi_field])
+    # validate_featureset(featureset, [int_field, aoi_field])
 
     if aoi_field and int_field:
         area_pct = {}
@@ -738,29 +797,38 @@ def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
             area_pct[aoi] = {}
             for f in [f for f in featureset['features'] if
                       f['properties'][aoi_field] == aoi]:
+                pct = f['geometry'].area / HA_CONVERSION / area * 100
                 int_category = f['properties'][int_field]
-                area_pct[aoi][int_category] = (f['geometry'].area /
-                                               HA_CONVERSION / area * 100)
+                if int_category in area_pct[aoi].keys():
+                    area_pct[aoi][int_category] += pct
+                else:
+                    area_pct[aoi][int_category] = pct
     elif aoi_field:
         area_pct = {}
         for f in featureset['features']:
             aoi = f['properties'][aoi_field]
             area = aoi_area[aoi]
-            area_pct[aoi] = (f['geometry'].area / HA_CONVERSION / area *
-                             100)
+            pct = f['geometry'].area / HA_CONVERSION / area * 100
+            if aoi in area_pct.keys():
+                area_pct[aoi] += pct
+            else:
+                area_pct[aoi] = pct
         for aoi in aoi_area.keys():
             if aoi not in area_pct.keys():
                 area_pct[aoi] = 0
     elif int_field:
         area_pct = {}
         for f in featureset['features']:
+            pct = f['geometry'].area / HA_CONVERSION / aoi_area * 100
             int_category = f['properties'][int_field]
-            area_pct[int_category] = (f['geometry'].area / HA_CONVERSION /
-                                      aoi_area * 100)
+            if int_category in area_pct.keys():
+                area_pct[int_category] += pct
+            else:
+                area_pct[int_category] = pct
     else:
         if featureset['features']:
-            area_pct = (featureset['features'][0]['geometry'].area /
-                        HA_CONVERSION / aoi_area * 100)
+            area_pct = sum([f['geometry'].area / HA_CONVERSION / aoi_area
+                            * 100 for f in featureset['features']])
         else:
             area_pct = 0
 
