@@ -3,7 +3,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-split": ["split", "aoi"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"]
@@ -20,7 +20,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-split": ["split", "aoi"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
@@ -35,7 +35,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-split": ["split", "aoi"],
-			"reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+			"reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
@@ -47,7 +47,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-split": ["split", "aoi"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
@@ -203,7 +203,7 @@
 			"aoi-split": ["split", "aoi"],
 			"aoi-prj": ["project_local", "aoi-split"],
 			"aoi-area": ["get_area", "aoi-prj"],
-			"histograms": ["esri_server2histo", "{layer_url}", "{user_json}"],
+			"histograms": ["esri_server2histo", "{layer_url}", "aoi-split"],
 			"loss-area": ["get_histo_loss_area", "histograms"],
 			"pre2001-area": ["get_histo_pre2001_area", "histograms"],
 			"total-area": ["get_histo_total_area", "histograms"]
@@ -212,15 +212,20 @@
 	},
 	"count-by-year": {
 		"graph": {
-			"counts-by-year": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"]
+			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
+			"counts-by-year-dense": ["esri_count_groupby", "{layer_url}", "aoi-split", "{category}"],
+			"counts-by-year": ["pad_counts", "counts-by-year-dense", "2001", "2016"]
 		},
 		"outputs": ["counts-by-year"]
 	},
 	"count-by-month": {
 		"graph": {
-			"counts-by-month": ["esri_count_groupby", "{layer_url}", "{user_json}", "{category}"],
-			"count-last-30days": ["esri_count_30days", "{layer_url}", "{user_json}", "{field}"],
-			"timestamp-last-fire": ["esri_last_instance", "{layer_url}", "{user_json}", "{field}"],
+			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
+			"counts-by-month": ["esri_count_groupby", "{layer_url}", "aoi-split", "{category}"],
+			"count-last-30days": ["esri_count_30days", "{layer_url}", "aoi-split", "{field}"],
+			"timestamp-last-fire": ["esri_last_instance", "{layer_url}", "aoi-split", "{field}"],
 			"date-last-fire": ["get_date_from_timestamp", "timestamp-last-fire"]
 		},
 		"outputs": ["counts-by-month", "count-last-30days", "date-last-fire"]
@@ -228,7 +233,8 @@
 	"regions": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-	        "reference-data": ["esri_attributes", "{layer_url}", "{user_json}",
+			"aoi-split": ["split", "aoi"],
+	        "reference-data": ["esri_attributes", "{layer_url}", "aoi-split",
 	        	"{out_fields}"],
 			"south-america": ["get_presence", "reference-data", "FID_south_america"],
 			"southeast-asia": ["get_presence", "reference-data", "FID_southeast_asia"],
@@ -244,7 +250,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-split": ["split", "aoi"],
-			"reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
+			"reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "intersect-geom": ["intersect", "aoi-split", "reference-data"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],

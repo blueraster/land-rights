@@ -112,13 +112,10 @@ def bbox(f):
     tups = mapping(box(*bounds(f)))['coordinates']
     # raise ValueError((bounds(f), tups))
     return [[list(tup) for tup in tups[0]]]
-    # x, y = zip(*list(explode(f['geometry']['coordinates'])))
-    # x1, x2, y1, y2 = min(x), max(x), min(y), max(y)
-    # return [[[x1, y1],
-    #          [x2, y1],
-    #          [x2, y2],
-    #          [x1, y2],
-    #          [x1, y1]]]
+
+
+def ogr2rings(f):
+    return [[list(tup) for tup in mapping(f['geometry'])['coordinates'][0]]]
 
 
 # @lru_cache(5)
@@ -150,7 +147,9 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
     featureset = {'type': 'FeatureCollection', 'features': []}
     features = []
     objectids = []
-    for f in json.loads(aoi)['features']:
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
+    for f in aoi['features']:
         params['geometry'] = str({'rings': bbox(f),
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
@@ -190,12 +189,13 @@ def esri_server2histo(layer_endpoint, aoi):
     params['returnGeometry'] = True
     params['where'] = '1=1'
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
     # if featureset['features']:
     #     f = featureset['features'][0]
-    histogram = [0] * 135
-    for f in featureset['features']:
-        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+    histogram = [0] * 256
+    for f in aoi['features']:
+        params['geometry'] = str({'rings': ogr2rings(f),
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
@@ -221,11 +221,12 @@ def esri_attributes(layer_endpoint, aoi, out_fields):
     params['returnGeometry'] = False
     params['outFields'] = out_fields
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
     objectids = []
     attributes = []
-    for f in featureset['features']:
-        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+    for f in aoi['features']:
+        params['geometry'] = str({'rings': ogr2rings(f),
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
@@ -257,10 +258,11 @@ def esri_count_groupby(layer_endpoint, aoi, count_fields):
         'outStatisticFieldName': 'count'
     }])
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
     counts = {}
-    for f in featureset['features']:
-        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+    for f in aoi['features']:
+        params['geometry'] = str({'rings': ogr2rings(f),
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
@@ -293,10 +295,11 @@ def esri_count_30days(layer_endpoint, aoi, date_field):
     params['returnGeometry'] = False
     params['returnCountOnly'] = True
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
     count = 0
-    for f in featureset['features']:
-        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+    for f in aoi['features']:
+        params['geometry'] = str({'rings': ogr2rings(f),
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
@@ -318,10 +321,11 @@ def esri_last_instance(layer_endpoint, aoi, field):
     params['orderByFields'] = field
     params['returnDistinctValues'] = True
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
     last_instance = None
-    for f in featureset['features']:
-        params['geometry'] = str({'rings': f['geometry']['coordinates'],
+    for f in aoi['features']:
+        params['geometry'] = str({'rings': ogr2rings(f),
                                   'spatialReference': {'wkid': 4326}})
         req = requests.post(url, data=params)
         req.raise_for_status()
@@ -340,13 +344,16 @@ def esri_last_instance(layer_endpoint, aoi, field):
     return last_instance
 
 
-@lru_cache(5)
+# @lru_cache(5)
 def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     endpoint_template = 'https://{}.carto.com/tables/{}/'
     username, table = search(endpoint_template, service_endpoint + '/')
     url = 'https://{username}.carto.com/api/v2/sql'.format(username=username)
 
-    featureset = json.loads(aoi) if isinstance(aoi, str) else aoi
+    if isinstance(aoi, str):
+        aoi = json.loads(aoi)
+    
+    # raise ValueError()
 
     params = {}
     fields = ['ST_AsGeoJSON(the_geom) as geometry']
@@ -358,7 +365,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     temp = "ST_Intersects(ST_Buffer(ST_GeomFromText('{}',4326),0),the_geom)"
     features = []
     objectids = []
-    for f in featureset['features']:
+    for f in aoi['features']:
         where_clause = temp.format(wkt.dumps({'type': 'Polygon',
                                               'coordinates': bbox(f)}))
         if where and not where == '1=1':
@@ -528,15 +535,16 @@ def dissolve(featureset, field=None):
                                              properties=new_properties))
 
         else:
-            geoms = [f['geometry'] for f in featureset['features']]
+            geoms = [f['geometry'] if f['geometry'].is_valid else
+                     f['geometry'].buffer(0) for f in featureset['features']]
             new_properties = condense_properties([f['properties'] for f in
                                                   featureset['features']])
             new_properties['dissolve_id'] = dissolve_id
             dissolve_id += 1
             new_features.append(dict(type='Feature',
-                                     geometry=unary_union(geoms),
-                                     properties=new_properties))
-
+                                         geometry=unary_union(geoms),
+                                         properties=new_properties))
+            
     new_featureset = dict(type=featureset['type'],
                           features=new_features)
     if 'crs' in featureset.keys():
@@ -756,9 +764,14 @@ def get_presence(attributes, field):
 def get_area_by_attributes(featureset, posfields, negfields):
     posfields = posfields.split(',') if posfields else []
     negfields = negfields.split(',') if negfields else []
-    area_m = sum([f['geometry'].area for f in featureset['features']
-                  if all(f['properties'][field] > 0 for field in posfields)
-                  and all(f['properties'][field] < 0 for field in negfields)])
+    try:
+        area_m = sum([f['geometry'].area for f in featureset['features']
+                      if all(f['properties'][fld] and
+                             f['properties'][fld] > 0 for fld in posfields)
+                      and all(f['properties'][fld] and
+                              f['properties'][fld] < 0 for fld in negfields)])
+    except:
+        raise ValueError([f['properties'] for field in posfields for f in featureset['features'] if f['properties'][field] is None])
     return area_m / HA_CONVERSION
 
 
@@ -766,8 +779,10 @@ def get_geom_by_attributes(featureset, posfields, negfields):
     posfields = posfields.split(',') if posfields else []
     negfields = negfields.split(',') if negfields else []
     features = [f for f in featureset['features']
-                if all(f['properties'][field] > 0 for field in posfields)
-                and all(f['properties'][field] < 0 for field in negfields)]
+                if all(f['properties'][fld] and f['properties'][fld] > 0
+                       for fld in posfields)
+                  and all(f['properties'][fld] and f['properties'][fld] < 0
+                          for fld in negfields)]
     new_featureset = dict(type=featureset['type'],
                           features=features)
     if 'crs' in featureset.keys():
@@ -949,12 +964,15 @@ def pad_counts(counts, start_yr, end_yr):
     Pad result object for fires counts by month or year with zeros
     for all missing months or years
     '''
-    if counts and '-' in counts.keys():
-        new_counts = {'{}-{}'.format(yr, mn): 0 for mn in range(1, 13)
-                      for yr in range(int(start_yr), int(end_yr)+1)}
+    if counts:
+        if '-' in counts.keys():
+            new_counts = {'{}-{}'.format(yr, mn): 0 for mn in range(1, 13)
+                          for yr in range(int(start_yr), int(end_yr)+1)}
+        else:
+            new_counts = {str(yr): 0 for yr in range(int(start_yr),
+                                                     int(end_yr)+1)}
     else:
-        new_counts = {str(yr): 0 for yr in range(int(start_yr),
-                                                 int(end_yr)+1)}
+        new_counts = {}
     for key in new_counts.keys():
         if key in counts.keys():
             new_counts[key] = counts[key]

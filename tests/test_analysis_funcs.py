@@ -14,7 +14,6 @@ from polyIntersect.micro_functions.poly_intersect import buffer_to_dist
 from polyIntersect.micro_functions.poly_intersect import project_local
 from polyIntersect.micro_functions.poly_intersect import project_global
 from polyIntersect.micro_functions.poly_intersect import get_area
-from polyIntersect.micro_functions.poly_intersect import get_area_percent
 
 
 from shapely.geometry.polygon import Polygon
@@ -141,52 +140,6 @@ def test_not_projected_buffer():
     except ValueError as e:
         assert str(e) == ('geometries must be projected with the World ' +
                           'Azimuthal Equidistant coordinate system')
-
-
-def test_area_percent_no_categories():
-    featureset1 = json2ogr(INTERSECT_PARTIALLY_WITHIN_GEOJSON)
-    for i,f in enumerate(featureset1['features']):
-        f['properties']['id'] = i
-    featureset2 = json2ogr(INTERSECT_BASE_GEOJSON)
-
-    result_featureset = intersect(featureset1, featureset2)
-    assert len(result_featureset['features']) == 1
-
-    featureset1_projected = project_local(featureset1)
-    result_projected = project_local(result_featureset)
-
-    aoi_area = get_area(featureset1_projected)
-    area_pct = get_area_percent(result_projected, aoi_area)
-
-    assert area_pct
-    assert isinstance(area_pct, float)
-    assert area_pct > 0 and area_pct <=100
-
-
-def test_area_percent_with_categories():
-    featureset1 = json2ogr(INTERSECT_BASE_GEOJSON)
-    for i,f in enumerate(featureset1['features']):
-        f['properties']['id'] = i
-    featureset2 = json2ogr(INTERSECT_MULTIPLE_FEATURES)
-
-    result_featureset = intersect(featureset1, featureset2)
-    assert len(result_featureset['features']) == 2
-    field_vals = [f['properties']['value'] for f in result_featureset['features']]
-    assert len(field_vals) == len(set(field_vals))
-
-    featureset1_projected = project_local(featureset1)
-    result_projected = project_local(result_featureset)
-
-    aoi_area = get_area(featureset1_projected, 'id')
-    area_pct = get_area_percent(result_projected, aoi_area, 'id', 'value')
-
-    assert area_pct
-    assert isinstance(area_pct, dict)
-    for area_pct_cats in area_pct.values():
-        assert isinstance(area_pct_cats, dict)
-        for val in area_pct_cats.values():
-            assert isinstance(val, float)
-            assert val > 0 and val <=100
 
 
 def test_json2ogr():
