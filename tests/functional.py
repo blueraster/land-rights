@@ -73,7 +73,7 @@ def run_request(url):
             # print(response['intersect-geom'])
             json.dump(fc, open('output.json', 'w'))
         for key, val in response.items():
-            if key != "intersect-geom":
+            if not 'geom' in key:
                 print('{}: {}'.format(key, val))
     except Exception as e:
         print(str(e))
