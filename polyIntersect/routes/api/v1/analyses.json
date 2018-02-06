@@ -2,10 +2,11 @@
 	"geom": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"]
+	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"]
 		},
 		"outputs": ["intersect-geom"]
 	},
@@ -18,11 +19,12 @@
 	"area-and-geom": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
-	        "aoi-prj": ["project_local", "aoi"],
+	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
+	        "aoi-prj": ["project_local", "aoi-split"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "aoi-area": ["get_area", "aoi-prj"],
 	        "intersect-area": ["get_area", "intersect-geom-prj", "{category}"]
@@ -32,22 +34,24 @@
 	"erase-and-intersect-geom": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
 			"reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
-	        "erase-geom": ["erase", "aoi", "dissolve-data"]
+	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
+	        "erase-geom": ["erase", "aoi-split", "dissolve-data"]
 		},
 		"outputs": ["erase-geom", "intersect-geom"]
 	},
 	"area": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
-	        "aoi-prj": ["project_local", "aoi"],
+	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
+	        "aoi-prj": ["project_local", "aoi-split"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "aoi-area": ["get_area", "aoi-prj"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"]
@@ -75,7 +79,8 @@
 	"dissolve": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-	        "dissolved-geom": ["dissolve", "aoi"],
+	        "aoi-dissolved": ["dissolve", "aoi"],
+	        "dissolved-geom": ["split", "aoi-dissolved"],
 	        "aoi-prj": ["project_local", "dissolved-geom"],
 	        "aoi-area": ["get_area", "aoi-prj"]
 		},
@@ -84,7 +89,8 @@
 	"area-and-geom-buffered-test": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-	        "aoi-prj": ["project_local", "aoi"],
+			"aoi-split": ["split", "aoi"],
+	        "aoi-prj": ["project_local", "aoi-split"],
 	        "aoi-buffer-10km": ["buffer_to_dist", "aoi-prj", "10"],
 	        "aoi-buffer-50km": ["buffer_to_dist", "aoi-prj", "50"],
 	        "aoi-buffer-50km-wgs84": ["project_global", "aoi-buffer-50km"]
@@ -101,12 +107,14 @@
 	        "aoi-buffer-50km": ["buffer_to_dist", "aoi-prj", "50"],
 	        "buffer-50km-area": ["get_area", "aoi-buffer-50km"],
 	        "aoi-buffer-50km-wgs84": ["project_global", "aoi-buffer-50km"],
-	        "geojson-buffer-50km": ["ogr2json", "aoi-buffer-50km-wgs84"],
+	        "aoi-buffer-50km-wgs84-split": ["split", "aoi-buffer-50km-wgs84"],
+	        "geojson-buffer-50km": ["ogr2json", "aoi-buffer-50km-wgs84-split"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}",
 	        	"geojson-buffer-50km", "{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
-	        "dissolve-data-prj": ["project_local", "dissolve-data"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
+	        "dissolve-data-split": ["split", "dissolve-data"],
+	        "dissolve-data-prj": ["project_local", "dissolve-data-split"],
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data-split"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"],
 	        "intersect-buffer-10km": ["intersect", "aoi-buffer-10km",
@@ -130,7 +138,8 @@
 	        "aoi-buffer-50km": ["buffer_to_dist", "aoi-prj", "50"],
 	        "buffer-50km-area": ["get_area", "aoi-buffer-50km"],
 	        "aoi-buffer-50km-wgs84": ["project_global", "aoi-buffer-50km"],
-	        "geojson-buffer-50km": ["ogr2json", "aoi-buffer-50km-wgs84"],
+	        "aoi-buffer-50km-wgs84-split": ["split", "aoi-buffer-50km-wgs84"],
+	        "geojson-buffer-50km": ["ogr2json", "aoi-buffer-50km-wgs84-split"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}",
 	        	"geojson-buffer-50km", "{out_fields}", "{where}", "{token}"],
 	        "intersect-geom-raw": ["intersect", "aoi", "reference-data"],
@@ -139,8 +148,9 @@
 	        "dissolve-by-cat-prj": ["project_local", "dissolve-by-cat"],
 	        "intersect-area-by-cat": ["get_area", "dissolve-by-cat-prj", "{category}"],
 	        "dissolve-data": ["dissolve", "reference-data"],
-	        "dissolve-data-prj": ["project_local", "dissolve-data"],
-	        "intersect-geom": ["intersect", "aoi", "dissolve-data"],
+	        "dissolve-data-split": ["split", "dissolve-data"],
+	        "dissolve-data-prj": ["project_local", "dissolve-data-split"],
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data-split"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "intersect-area": ["get_area", "intersect-geom-prj"],
 	        "intersect-buffer-10km": ["intersect", "aoi-buffer-10km",
@@ -158,7 +168,8 @@
 	"area-and-count-buffered": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-	        "aoi-prj": ["project_local", "aoi"],
+			"aoi-split": ["split", "aoi"],
+	        "aoi-prj": ["project_local", "aoi-split"],
 	        "aoi-area": ["get_area", "aoi-prj"],
 	        "aoi-buffer-10km": ["buffer_to_dist", "aoi-prj", "10"],
 	        "buffer-10km-area": ["get_area", "aoi-buffer-10km"],
@@ -168,7 +179,7 @@
 	        "geojson-buffer-50km": ["ogr2json", "aoi-buffer-50km-wgs84"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}",
 	        	"geojson-buffer-50km", "{out_fields}", "{where}", "{token}"],
-	        "intersect-geom": ["intersect", "aoi", "reference-data"],
+	        "intersect-geom": ["intersect", "aoi-split", "reference-data"],
 	        "species-count": ["get_species_count", "intersect-geom", "{field}"],
 	        "intersect-geom-dissolved": ["dissolve", "intersect-geom"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom-dissolved"],
@@ -189,7 +200,8 @@
 	"soy": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-			"aoi-prj": ["project_local", "aoi"],
+			"aoi-split": ["split", "aoi"],
+			"aoi-prj": ["project_local", "aoi-split"],
 			"aoi-area": ["get_area", "aoi-prj"],
 			"histograms": ["esri_server2histo", "{layer_url}", "{user_json}"],
 			"loss-area": ["get_histo_loss_area", "histograms"],
@@ -231,9 +243,10 @@
 	"palm-risk": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
+			"aoi-split": ["split", "aoi"],
 			"reference-data": ["{gfw_dataset}", "{layer_url}", "{user_json}",
 	        	"{out_fields}", "{where}", "{token}"],
-	        "intersect-geom": ["intersect", "aoi", "reference-data"],
+	        "intersect-geom": ["intersect", "aoi-split", "reference-data"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "land-cover-area": ["get_area_by_attributes", "intersect-geom-prj", "", ""],
 	        "forest-area": ["get_area_by_attributes", "intersect-geom-prj", "FID_forest_cover",
@@ -273,7 +286,8 @@
 	"buffer": {
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
-	        "aoi-prj": ["project_local", "aoi"],
+			"aoi-split": ["split", "aoi"],
+	        "aoi-prj": ["project_local", "aoi-split"],
 	        "aoi-buffer-prj": ["buffer_to_dist", "aoi-prj", "{distance}"],
 	        "aoi-buffer": ["project_global", "aoi-buffer-prj"]
 	    },
