@@ -1,9 +1,18 @@
 {
+	"test": {
+		"graph": {
+			"aoi-split": ["geojson", "{user_json}"],
+			"aoi": ["dissolve", "aoi-split"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
+	        	"{out_fields}", "{where}", "{token}"]
+		},
+		"outputs": ["reference-data"]
+	},
 	"geom": {
 		"graph": {
-			"aoi": ["geojson", "{user_json}"],
-			"aoi-split": ["split", "aoi"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
+			"aoi-split": ["geojson", "{user_json}"],
+			"aoi": ["dissolve", "aoi_split"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"]
@@ -18,13 +27,13 @@
 	},
 	"area-and-geom": {
 		"graph": {
-			"aoi": ["geojson", "{user_json}"],
-			"aoi-split": ["split", "aoi"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
+			"aoi_split": ["geojson", "{user_json}"],
+			"aoi": ["dissolve", "aoi_split"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
-	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"],
-	        "aoi-prj": ["project_local", "aoi-split"],
+	        "intersect-geom": ["intersect", "aoi_split", "dissolve-data"],
+	        "aoi-prj": ["project_local", "aoi"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "aoi-area": ["get_area", "aoi-prj"],
 	        "intersect-area": ["get_area", "intersect-geom-prj", "{category}"]
@@ -248,11 +257,11 @@
 	},
 	"palm-risk": {
 		"graph": {
-			"aoi": ["geojson", "{user_json}"],
-			"aoi-split": ["split", "aoi"],
-			"reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
+			"aoi-split": ["geojson", "{user_json}"],
+			"aoi": ["dissolve", "aoi-split"],
+			"reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
 	        	"{out_fields}", "{where}", "{token}"],
-	        "intersect-geom": ["intersect", "aoi-split", "reference-data"],
+	        "intersect-geom": ["intersect", "aoi", "reference-data"],
 	        "intersect-geom-prj": ["project_local", "intersect-geom"],
 	        "land-cover-area": ["get_area_by_attributes", "intersect-geom-prj", "", ""],
 	        "forest-area": ["get_area_by_attributes", "intersect-geom-prj", "FID_forest_cover",
@@ -266,22 +275,28 @@
 	        "wdpa-area": ["get_area_by_attributes", "intersect-geom-prj", "FID_wdpa", ""],
 	        "geom-forest": ["get_geom_by_attributes", "intersect-geom",
 	        	"FID_forest_cover", "FID_plantation"],
-	        "intersect-geom-forest": ["dissolve", "geom-forest"],
+	        "intersect-geom-forest-diss": ["dissolve", "geom-forest"],
+	        "intersect-geom-forest": ["split", "intersect-geom-forest-diss"],
 	        "geom-forest-peat": ["get_geom_by_attributes", "intersect-geom",
 	        	"FID_forest_cover,FID_peat", "FID_plantation"],
-	        "intersect-geom-forest-peat": ["dissolve", "geom-forest-peat"],
+	        "intersect-geom-forest-peat-diss": ["dissolve", "geom-forest-peat"],
+	        "intersect-geom-forest-peat": ["dissolve", "intersect-geom-forest-peat-diss"],
 	        "geom-forest-wdpa": ["get_geom_by_attributes", "intersect-geom",
 	        	"FID_forest_cover,FID_wdpa", "FID_plantation"],
-	        "intersect-geom-forest-wdpa": ["dissolve", "geom-forest-wdpa"],
+	        "intersect-geom-forest-wdpa-diss": ["dissolve", "geom-forest-wdpa"],
+	        "intersect-geom-forest-wdpa": ["dissolve", "intersect-geom-forest-wdpa-diss"],
 	        "geom-noforest": ["get_geom_by_attributes", "intersect-geom",
 	        	"", "FID_forest_cover_coverage,FID_plantation"],
-	        "intersect-geom-noforest": ["dissolve", "geom-noforest"],
+	        "intersect-geom-noforest-diss": ["dissolve", "geom-noforest"],
+	        "intersect-geom-noforest": ["split", "intersect-geom-noforest-diss"],
 	        "geom-noforest-peat": ["get_geom_by_attributes", "intersect-geom",
 	        	"FID_peat", "FID_forest_cover_coverage,FID_plantation"],
-	        "intersect-geom-noforest-peat": ["dissolve", "geom-noforest-peat"],
+	        "intersect-geom-noforest-peat-diss": ["dissolve", "geom-noforest-peat"],
+	        "intersect-geom-noforest-peat": ["dissolve", "intersect-geom-noforest-peat-diss"],
 	        "geom-noforest-wdpa": ["get_geom_by_attributes", "intersect-geom",
 	        	"FID_wdpa", "FID_forest_cover_coverage,FID_plantation"],
-	        "intersect-geom-noforest-wdpa": ["dissolve", "geom-noforest-wdpa"]
+	        "intersect-geom-noforest-wdpa-diss": ["dissolve", "geom-noforest-wdpa"],
+	        "intersect-geom-noforest-wdpa": ["dissolve", "intersect-geom-noforest-wdpa-diss"]
 		},
 		"outputs": ["land-cover-area", "forest-area", "peat-area", "wdpa-area",
 					"plantation-area", "plantation-area-peat", "plantation-area-wdpa",

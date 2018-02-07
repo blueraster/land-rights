@@ -6,6 +6,7 @@ from polyIntersect.routes.api.v1 import endpoints
 import polyIntersect.micro_functions.poly_intersect as analysis_funcs
 import requests
 from datetime import datetime
+from time import time
 
 
 def convert_date(date):
@@ -65,6 +66,7 @@ def compute(graph, outputs):
 
 
 def execute_model(analysis, dataset, user_json, geojson2, distance):
+    t0 = time()
 
     # read config files
     with open(path.join(path.dirname(__file__), 'analyses.json')) as f:
@@ -138,6 +140,7 @@ def execute_model(analysis, dataset, user_json, geojson2, distance):
     # create and compute graph
     dag = create_dag_from_json(json.dumps(graph))
     data = compute(dag, outputs)
+    data['seconds'] = time() - t0
     response = jsonify(data)
     response.status_code = 200
     return response
