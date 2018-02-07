@@ -57,6 +57,8 @@ def json2ogr(in_json):
 
     for f in in_json['features']:
         f['geometry'] = shape(f['geometry'])
+        if not f['geometry'].is_valid:
+            f['geometry'] = f['geometry'].buffer(0)
 
     for i in range(len(in_json['features'])):
         in_json['features'][i]['properties']['id'] = i
@@ -391,7 +393,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
         'type': 'FeatureCollection',
         'features': features
     })
-    
+
     return featureset
 
 
