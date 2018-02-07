@@ -30,7 +30,6 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'vals_by_year', 'split']
 
 HA_CONVERSION = 10000
-t0 = 0
 COMPLEXITY_THRESHOLDS = {
     'vertices': 5000,
     'width': 1.2,
@@ -392,9 +391,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
         'type': 'FeatureCollection',
         'features': features
     })
-    global t0
-    t0 = time()
-    # raise ValueError(time()-t0)
+    
     return featureset
 
 
