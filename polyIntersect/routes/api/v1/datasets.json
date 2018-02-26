@@ -120,6 +120,11 @@
 		"category": "",
 		"field": ""
 	},
+	"gadm2": {
+		"id": "daa63ccb-5a44-4776-9fc5-05b357fd54c1",
+		"category": "NAME_2",
+		"field": ""
+	},	
 	"forest-change": {
 		"id": "e900e58b-f22c-467b-898f-945feddafe04",
 		"category": "FID_indonesia,FID_cerrado,FID_brazil_legal_amazon,FID_brazil_biomes,FID_south_america,FID_southeast_asia",
