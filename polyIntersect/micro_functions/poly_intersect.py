@@ -30,11 +30,8 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'vals_by_year', 'split']
 
 HA_CONVERSION = 10000
-COMPLEXITY_THRESHOLDS = {
-    'vertices': 5000,
-    'width': 1.2,
-    'height': 1.2
-}
+COMPLEXITY_THRESHOLD = 1.2
+REQUEST_THRESHOLD = 40
 
 
 def test_ip():
@@ -397,32 +394,78 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     return featureset
 
 
+def split_featureset(featureset):
+    '''
+    Separate featureset into sections based on features's general proximity
+    '''
+    new_featuresets = []
+    x1s, y1s, x2s, y2s = zip([bounds(f) for f in featureset['features']])
+    x1fc, y1fc, x2fc, y2fc = min(x1s), min(y1s), max(x2s), max(y2s)
+    if x2fc - x1fc > REQUEST_THRESHOLD:
+        x_splits = [x1 + (x + 1) * 40 for x in
+                    range(int((x2 - x1 - 1) / REQUEST_THRESHOLD))]
+    if y2fc - y2fc > REQUEST_THRESHOLD:
+        y_splits = [y1 + (y + 1) * 40 for y in
+                    range(int((y2 - y1 - 1) / REQUEST_THRESHOLD))]
+    if x_splits:
+        x_featuresets = [dict(type=featureset['type'], features=[])
+                         for i in range(len(x_splits) + 1)]
+        for f in featureset['features']:
+            x1, y1, x2, y2 = bounds(f)
+            for i, x_split in enumerate(x_splits):
+                if x1 + (x2 - x1) / 2 < x_split:
+                    x_featuresets[i]['features'].append(f)
+                    continue
+                x_featuresets[-1]['features'].append(f)
+    else:
+        x_featuresets = [dict(type=featureset['type'],
+                         features=featureset['features'])]
+    if y_splits:
+        for x_featureset in x_featuresets:
+            y_featuresets = [dict(type=x_featureset['type'], features=[])
+                             for i in range(len(y_splits) + 1)]
+            for f in x_featureset['features']:
+                x1, y1, x2, y2 = bounds(f)
+                for i, y_split in enumerate(y_splits):
+                    if y1 + (y2 - y1) / 2 < y_split:
+                        y_featuresets[i]['features'].append(f)
+                        continue
+                    y_featuresets[-1]['features'].append(f)
+            new_featuresets.extend(y_featuresets)
+    else:
+        new_featuresets.extend(x_featuresets)
+
+    return new_featuresets
+        
+
+        #     if x1 + (x2 - x1) / 2 <= x_split:
+        #         new_features[0]['features'].append(f)
+        #     else:
+        #         new_features[1]['features'].append(f)
+        # featureset_left = dict(type=user_json['type'],
+        #                        features=[f for f in user_json['features'] if
+        #                                  analysis_funcs.bounds_centroid(f)[0]
+        #                                  <= x_half])
+        # featureset_right = dict(type=user_json['type'],
+        #                         features=[f for f in user_json['features'] if
+        #                                   analysis_funcs.bounds_centroid(f)[0]
+        #                                   > x_half])
+
+
 def get_split_boxes(f):
     '''
     Check if number of vertices or width or height of bounding box exceed
     thresholds. If they do, returns two revised bounding boxes (Left/Upper
     and Right/Bottom) for intersecting with the geometry
     '''
-    # bb = bbox(f)[0]
     x1, y1, x2, y2 = bounds(f)
-    if (x2 - x1 > COMPLEXITY_THRESHOLDS['width'] or
-            y2 - y1 > COMPLEXITY_THRESHOLDS['height'] or
-            sum([len(r) for r in mapping(f['geometry'])['coordinates']]) >
-            COMPLEXITY_THRESHOLDS['vertices']):
+    if (x2 - x1 > COMPLEXITY_THRESHOLD or y2 - y1 > COMPLEXITY_THRESHOLD):
         if x2 - x1 > y2 - y1:
             x_split = x1 + (x2 - x1) / 2
             return [box(x1, y1, x_split, y2), box(x_split, y1, x2, y2)]
-            # return [[[bb[0], [half_line, y1],
-            #          [half_line, y2], bb[3], bb[4]]],
-            #        [[[half_line, bb[0][1]], bb[1], bb[2],
-            #          [half_line, bb[3][1]], [half_line, bb[4][1]]]]]
         else:
             y_split = y1 + (y2 - y1) / 2
             return [box(x1, y1, x2, y_split), box(x1, y_split, x2, y2)]
-            # return [[[bb[0], [x2, half_line],
-            #          [bb[2][0], half_line], bb[3], bb[4]]],
-            #        [[[x1, half_line], bb[1], bb[2],
-            #          [bb[3][0], half_line], [bb[4][0], half_line]]]]
 
     return None
 
@@ -513,6 +556,12 @@ def dissolve(featureset, field=None):
 
     new_features = []
     dissolve_id = 0
+    try:
+        assert isinstance(featureset, dict)
+        assert 'features' in featureset.keys()
+        assert isinstance(featureset['features'], list)
+    except Exception as e:
+        raise ValueError((str(e),featureset))
     if len(featureset['features']) > 0:
         if sort_func:
             features = sorted(featureset['features'], key=sort_func)

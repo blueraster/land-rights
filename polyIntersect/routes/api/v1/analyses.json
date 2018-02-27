@@ -11,11 +11,24 @@
 	"geom": {
 		"graph": {
 			"aoi-split": ["geojson", "{user_json}"],
-			"aoi": ["dissolve", "aoi_split"],
+			"aoi-diss": ["dissolve", "aoi_split"],
+			"aoi": ["split", "aoi-diss"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"]
+		},
+		"outputs": ["intersect-geom"]
+	},
+	"geom-dissolved": {
+		"graph": {
+			"aoi": ["geojson", "{user_json}"],
+			"aoi-diss": ["dissolve", "aoi"],
+			"aoi-split": ["split", "aoi-diss"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
+	        	"{out_fields}", "{where}", "{token}"],
+	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
+	        "intersect-geom": ["intersect", "aoi-diss", "dissolve-data"]
 		},
 		"outputs": ["intersect-geom"]
 	},
