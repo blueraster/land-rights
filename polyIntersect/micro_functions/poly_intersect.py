@@ -27,11 +27,11 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'get_feature_count', 'test_ip', 'esri_attributes', 'get_presence',
            'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area',
            'get_area_by_attributes', 'get_geom_by_attributes', 'pad_counts',
-           'vals_by_year', 'split']
+           'vals_by_year', 'split', 'split_featureset']
 
 HA_CONVERSION = 10000
 COMPLEXITY_THRESHOLD = 1.2
-REQUEST_THRESHOLD = 40
+REQUEST_THRESHOLD = 20
 
 
 def test_ip():
@@ -101,7 +101,10 @@ def bounds(f):
     if isinstance(f['geometry'], dict):
         geom = f['geometry']['coordinates']
     else:
-        geom = mapping(f['geometry'])['coordinates']
+        try:
+            geom = mapping(f['geometry'])['coordinates']
+        except Exception as e:
+            raise ValueError((str(e),f['geometry'],mapping(f['geometry'])))
     x, y = zip(*list(explode(geom)))
     return min(x), min(y), max(x), max(y)
 
@@ -165,6 +168,8 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
             if feat_id not in objectids:
                 features.append(h)
                 objectids.append(feat_id)
+
+    raise ValueError([f['properties']['NAME_2'] for f in features])
 
     featureset = json2ogr(dict(type='FeatureCollection',
                                features=features))
@@ -396,46 +401,74 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
 
 def split_featureset(featureset):
     '''
-    Separate featureset into sections based on features's general proximity
+    Separate featureset into dissolved sections based on features's general proximity
     '''
-    new_featuresets = []
-    x1s, y1s, x2s, y2s = zip([bounds(f) for f in featureset['features']])
-    x1fc, y1fc, x2fc, y2fc = min(x1s), min(y1s), max(x2s), max(y2s)
-    if x2fc - x1fc > REQUEST_THRESHOLD:
-        x_splits = [x1 + (x + 1) * 40 for x in
-                    range(int((x2 - x1 - 1) / REQUEST_THRESHOLD))]
-    if y2fc - y2fc > REQUEST_THRESHOLD:
-        y_splits = [y1 + (y + 1) * 40 for y in
-                    range(int((y2 - y1 - 1) / REQUEST_THRESHOLD))]
+    # new_featuresets = []
+    feature_groups = []
+    x1s, y1s, x2s, y2s = zip(*[bounds(f) for f in featureset['features']])  # all min/max x's and y's
+    x1fc, y1fc, x2fc, y2fc = min(x1s), min(y1s), max(x2s), max(y2s)         # min/max x/y for whole feature class
+    # if x2fc - x1fc > REQUEST_THRESHOLD:
+    x_splits = ([x1fc + (x + 1) * REQUEST_THRESHOLD for x in
+                 range(int((x2fc - x1fc - 1) / REQUEST_THRESHOLD))]
+                if x2fc - x1fc > REQUEST_THRESHOLD else [])
+    # if y2fc - y2fc > REQUEST_THRESHOLD:
+    y_splits = ([y1fc + (y + 1) * REQUEST_THRESHOLD for y in
+                 range(int((y2fc - y1 - 1) / REQUEST_THRESHOLD))]
+                if y2fc - y2fc > REQUEST_THRESHOLD else [])
     if x_splits:
-        x_featuresets = [dict(type=featureset['type'], features=[])
-                         for i in range(len(x_splits) + 1)]
+        # x_featuresets = [dict(type=featureset['type'], features=[])
+        #                  for i in range(len(x_splits) + 1)]
+        x_feature_groups = [[] for i in range(len(x_splits) + 1)]
         for f in featureset['features']:
             x1, y1, x2, y2 = bounds(f)
             for i, x_split in enumerate(x_splits):
                 if x1 + (x2 - x1) / 2 < x_split:
-                    x_featuresets[i]['features'].append(f)
-                    continue
-                x_featuresets[-1]['features'].append(f)
+                    # x_featuresets[i]['features'].append(f)
+                    x_feature_groups[i].append(f)
+                    break
+                if i + 1 == len(x_splits):
+                    # x_featuresets[-1]['features'].append(f)
+                    x_feature_groups[-1].append(f)
     else:
-        x_featuresets = [dict(type=featureset['type'],
-                         features=featureset['features'])]
+        # x_featuresets = [dict(type=featureset['type'],
+        #                  features=featureset['features'])]
+        x_feature_groups = [featureset['features']]
+
     if y_splits:
-        for x_featureset in x_featuresets:
-            y_featuresets = [dict(type=x_featureset['type'], features=[])
-                             for i in range(len(y_splits) + 1)]
-            for f in x_featureset['features']:
+        # for x_featureset in x_featuresets:
+        for x_feature_group in x_feature_groups:
+            # y_featuresets = [dict(type=x_featureset['type'], features=[])
+            #                  for i in range(len(y_splits) + 1)]
+            y_feature_groups = [[] for i in range(len(y_splits) + 1)]
+            # for f in x_featureset['features']:
+            for f in x_feature_group:
                 x1, y1, x2, y2 = bounds(f)
                 for i, y_split in enumerate(y_splits):
                     if y1 + (y2 - y1) / 2 < y_split:
-                        y_featuresets[i]['features'].append(f)
-                        continue
-                    y_featuresets[-1]['features'].append(f)
-            new_featuresets.extend(y_featuresets)
+                        # y_featuresets[i]['features'].append(f)
+                        y_feature_groups[i].append(f)
+                        break
+                    if i + 1 == len(y_splits):
+                        # y_featuresets[-1]['features'].append(f)
+                        y_feature_groups[-1].append(f)
+            # new_features.extend(y_featuresets)
+            feature_groups.extend(y_feature_groups)
     else:
-        new_featuresets.extend(x_featuresets)
+        # new_featuresets.extend(x_featuresets)
+        feature_groups.extend(x_feature_groups)
+    feature_groups = [grp for grp in x_feature_groups if grp]
 
-    return new_featuresets
+    new_features = [dict(type='Feature',
+                         geometry=unary_union([f['geometry']
+                                               if f['geometry'].is_valid
+                                               else f['geometry'].buffer(0)
+                                               for f in features]),
+                         properties={}) for features in feature_groups]
+
+    new_featureset = dict(type=featureset['type'],
+                          features=new_features)
+
+    return new_featureset
         
 
         #     if x1 + (x2 - x1) / 2 <= x_split:
