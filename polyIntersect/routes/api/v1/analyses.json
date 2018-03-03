@@ -25,13 +25,12 @@
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-diss": ["dissolve", "aoi"],
 			"aoi-split": ["split_featureset", "aoi"],
-			"aoi-split-geom": ["ogr2json", "aoi-split"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi-diss", "dissolve-data"]
 		},
-		"outputs": ["intersect-geom", "aoi-split-geom"]
+		"outputs": ["intersect-geom"]
 	},
 	"test-ip": {
 		"graph": {
