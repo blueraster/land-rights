@@ -40,7 +40,7 @@ def test_successfully_dissolve_string_field():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_diss = dissolve(featureset, field='str_value')
+    geom_diss = dissolve(featureset, fields='str_value')
     assert len(geom_diss['features']) == 2
 
 
@@ -48,7 +48,7 @@ def test_successfully_dissolve_int_field():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_diss = dissolve(featureset, field='int_value')
+    geom_diss = dissolve(featureset, fields='int_value')
     assert len(geom_diss['features']) == 2
 
 
@@ -56,7 +56,7 @@ def test_successfully_dissolve_decimal_field():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_diss = dissolve(featureset, field='dec_value')
+    geom_diss = dissolve(featureset, fields='dec_value')
     assert len(geom_diss['features']) == 2
 
 
@@ -72,7 +72,7 @@ def test_maintain_crs():
     featureset = json2ogr(DISSOLVE_GEOJSON)
     assert len(featureset['features']) == 4
 
-    geom_diss = dissolve(featureset, field='str_value')
+    geom_diss = dissolve(featureset, fields='str_value')
     assert len(geom_diss['features']) == 2
     assert 'crs' in geom_diss.keys()
 

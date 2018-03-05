@@ -24,7 +24,7 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-diss": ["dissolve", "aoi"],
-			"aoi-split": ["split", "aoi-diss"],
+			"aoi-split": ["split_featureset", "aoi"],
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-split",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
