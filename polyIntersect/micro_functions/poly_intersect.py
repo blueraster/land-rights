@@ -169,8 +169,6 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
                 features.append(h)
                 objectids.append(feat_id)
 
-    raise ValueError([f['properties']['NAME_2'] for f in features])
-
     featureset = json2ogr(dict(type='FeatureCollection',
                                features=features))
 
@@ -575,15 +573,16 @@ def condense_properties(properties):
             if all(key in p.keys() and val == p[key] for p in properties)}
 
 
-def dissolve(featureset, field=None):
+def dissolve(featureset, fields=None):
     '''
     Dissolve a set of geometries on a field, or dissolve fully to a single
     feature if no field is provided
     '''
 
-    if field:
+    if fields:
         def sort_func(k):
-            return k['properties'][field]
+            return ','.join([str(k['properties'][field])
+                             for field in fields.split(',')])
     else:
         sort_func = None
 
