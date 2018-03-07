@@ -46,7 +46,7 @@ def run_request(url):
         # payload['user_json'] = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[102.65625, -0.11535636737818807], [102.32666015625, -0.17578097424708533], [102.5628662109375, -0.41198375451568836], [102.68920898437499, -0.21972602392080884], [102.65625, -0.11535636737818807]]]}}]}"
     elif dataset == 'aze':
         payload['geojson'] = json.loads(AZE_TEST)
-    elif dataset == 'soy' or dataset == 'brazil-biomes':
+    elif 'soy' in dataset or 'brazil' in dataset:
         payload['geojson'] = json.loads(SOY_BRAZIL)
     elif dataset == 'none':
         payload['geojson'] = json.loads(INTERSECT_BASE_GEOJSON)
