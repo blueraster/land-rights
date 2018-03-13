@@ -32,7 +32,7 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
 HA_CONVERSION = 10000
 COMPLEXITY_THRESHOLD = 1.2
 REQUEST_THRESHOLD = 20
-
+DEBUG_COUNTER = 0
 
 def test_ip():
     return requests.get('http://checkip.amazonaws.com').text.replace('\n', '')
@@ -353,7 +353,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
 
     if isinstance(aoi, str):
         aoi = json.loads(aoi)
-    
+
     # raise ValueError()
 
     params = {}
@@ -467,7 +467,7 @@ def split_featureset(featureset):
                           features=new_features)
 
     return new_featureset
-        
+
 
         #     if x1 + (x2 - x1) / 2 <= x_split:
         #         new_features[0]['features'].append(f)
@@ -624,7 +624,7 @@ def dissolve(featureset, fields=None):
             new_features.append(dict(type='Feature',
                                          geometry=unary_union(geoms),
                                          properties=new_properties))
-            
+
     new_featureset = dict(type=featureset['type'],
                           features=new_features)
     if 'crs' in featureset.keys():
@@ -735,6 +735,10 @@ def project_feature(f, project):
 
 
 def project_local(featureset):
+    #Debugging Info.
+    DEBUG_COUNTER += 1
+    logger.info('FUNCTION (START): project_local[' + str(DEBUG_COUNTER) + ']')
+
     if ('crs' in featureset.keys() and
             featureset['crs']['properties']['name'] ==
             'urn:ogc:def:uom:EPSG::9102'):
@@ -774,6 +778,7 @@ def project_local(featureset):
                           crs=dict(type="name",
                                    properties=dict(name=name)))
 
+    logger.info('FUNCTION (END): project_local[' + str(DEBUG_COUNTER) + ']')
     return new_featureset
 
 
