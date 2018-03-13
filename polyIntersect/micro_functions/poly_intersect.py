@@ -406,7 +406,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
 
     if isinstance(aoi, str):
         aoi = json.loads(aoi)
-    
+
     # raise ValueError()
 
     params = {}
@@ -527,7 +527,7 @@ def split_featureset(featureset):
 
     logging.info('FUNCTION split_featureset STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
-        
+
 
         #     if x1 + (x2 - x1) / 2 <= x_split:
         #         new_features[0]['features'].append(f)
@@ -694,7 +694,7 @@ def dissolve(featureset, fields=None):
             new_features.append(dict(type='Feature',
                                          geometry=unary_union(geoms),
                                          properties=new_properties))
-            
+
     new_featureset = dict(type=featureset['type'],
                           features=new_features)
     if 'crs' in featureset.keys():
