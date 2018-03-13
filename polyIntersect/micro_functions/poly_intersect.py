@@ -10,6 +10,7 @@ from functools import partial, lru_cache
 import pyproj
 import numpy as np
 from time import time
+import logging
 
 from shapely.geometry import shape, mapping, box
 from shapely.geometry.polygon import Polygon
@@ -29,9 +30,11 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'get_area_by_attributes', 'get_geom_by_attributes', 'pad_counts',
            'vals_by_year', 'split', 'split_featureset']
 
+
 HA_CONVERSION = 10000
 COMPLEXITY_THRESHOLD = 1.2
 REQUEST_THRESHOLD = 20
+FUNCTION_COUNT = 0
 
 
 def test_ip():
@@ -42,6 +45,10 @@ def json2ogr(in_json):
     '''
     Convert geojson object to GDAL geometry
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION json2ogr STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
 
     if isinstance(in_json, str):
         in_json = json.loads(in_json)
@@ -60,6 +67,7 @@ def json2ogr(in_json):
     for i in range(len(in_json['features'])):
         in_json['features'][i]['properties']['id'] = i
 
+    logging.info('FUNCTION json2ogr STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return in_json
 
 
@@ -67,6 +75,10 @@ def ogr2json(featureset):
     '''
     Convert GDAL geometry to geojson object
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION ogr2json STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
 
     new_features = []
     for f in featureset['features']:
@@ -79,6 +91,7 @@ def ogr2json(featureset):
                           features=new_features)
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
+    logging.info('FUNCTION ogr2json STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return json.dumps(new_featureset)
 
 
@@ -121,6 +134,10 @@ def ogr2rings(f):
 
 # @lru_cache(5)
 def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION esri_server2ogr STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
 
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
@@ -172,6 +189,7 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
     featureset = json2ogr(dict(type='FeatureCollection',
                                features=features))
 
+    logging.info('FUNCTION esri_server2ogr STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return featureset
 
     # req = requests.post(url, data=params)
@@ -181,6 +199,11 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
 
 
 def esri_server2histo(layer_endpoint, aoi):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION esri_server2histo STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     url = layer_endpoint.replace('?f=pjson', '') + '/computeHistograms'
 
     params = {}
@@ -208,10 +231,16 @@ def esri_server2histo(layer_endpoint, aoi):
         except Exception as e:
             raise ValueError('{} --- {}'.format(e, req.text))
 
+    logging.info('FUNCTION esri_server2histo STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histogram
 
 
 def esri_attributes(layer_endpoint, aoi, out_fields):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION esri_attributes STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
     params = {}
@@ -239,10 +268,16 @@ def esri_attributes(layer_endpoint, aoi, out_fields):
                 attributes.append(h['attributes'])
                 objectids.append(feat_id)
 
+    logging.info('FUNCTION esri_attributes STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return attributes
 
 
 def esri_count_groupby(layer_endpoint, aoi, count_fields):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION esri_count_groupby STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
     params = {}
@@ -280,10 +315,16 @@ def esri_count_groupby(layer_endpoint, aoi, count_fields):
         except Exception as e:
             raise ValueError((str(e), url, params, req.text))
 
+    logging.info('FUNCTION esri_count_groupby STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return counts
 
 
 def esri_count_30days(layer_endpoint, aoi, date_field):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION esri_count_30days STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
     date = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
@@ -306,10 +347,16 @@ def esri_count_30days(layer_endpoint, aoi, date_field):
         req.raise_for_status()
         count += req.json()['count']
 
+    logging.info('FUNCTION esri_count_30days STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return count
 
 
 def esri_last_instance(layer_endpoint, aoi, field):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION esri_last_instance STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     url = layer_endpoint.replace('?f=pjson', '') + '/query'
 
     params = {}
@@ -342,18 +389,24 @@ def esri_last_instance(layer_endpoint, aoi, field):
         except Exception as e:
             raise ValueError((str(e), url, params, req.text))
 
+    logging.info('FUNCTION esri_last_instance STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return last_instance
 
 
 # @lru_cache(5)
 def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION cartodb2ogr STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     endpoint_template = 'https://{}.carto.com/tables/{}/'
     username, table = search(endpoint_template, service_endpoint + '/')
     url = 'https://{username}.carto.com/api/v2/sql'.format(username=username)
 
     if isinstance(aoi, str):
         aoi = json.loads(aoi)
-    
+
     # raise ValueError()
 
     params = {}
@@ -380,7 +433,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
             req = requests.get(url, params=params)
             req.raise_for_status()
         except Exception as e:
-            raise ValueError((e, [bbox(f) for f in featureset['features']]))
+            raise ValueError((e, url, bbox(f)))
 
         response = json.loads(req.text)['rows']
         features += [{
@@ -394,6 +447,7 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
         'features': features
     })
 
+    logging.info('FUNCTION cartodb2ogr STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return featureset
 
 
@@ -401,6 +455,11 @@ def split_featureset(featureset):
     '''
     Separate featureset into dissolved sections based on features's general proximity
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION split_featureset STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     # new_featuresets = []
     feature_groups = []
     x1s, y1s, x2s, y2s = zip(*[bounds(f) for f in featureset['features']])  # all min/max x's and y's
@@ -466,8 +525,9 @@ def split_featureset(featureset):
     new_featureset = dict(type=featureset['type'],
                           features=new_features)
 
+    logging.info('FUNCTION split_featureset STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
-        
+
 
         #     if x1 + (x2 - x1) / 2 <= x_split:
         #         new_features[0]['features'].append(f)
@@ -544,6 +604,11 @@ def split(featureset):
     against vertex and bounding box size constraints, and split into multiple
     polygons using recursive halving if necessary
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION split STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     new_features = []
     split_id = 0
     for f in featureset['features']:
@@ -561,6 +626,7 @@ def split(featureset):
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
 
+    logging.info('FUNCTION split STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
@@ -578,6 +644,10 @@ def dissolve(featureset, fields=None):
     Dissolve a set of geometries on a field, or dissolve fully to a single
     feature if no field is provided
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION dissolve STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
 
     if fields:
         def sort_func(k):
@@ -624,12 +694,13 @@ def dissolve(featureset, fields=None):
             new_features.append(dict(type='Feature',
                                          geometry=unary_union(geoms),
                                          properties=new_properties))
-            
+
     new_featureset = dict(type=featureset['type'],
                           features=new_features)
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
 
+    logging.info('FUNCTION dissolve STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
@@ -653,6 +724,10 @@ def index_featureset(featureset):
 def intersect(featureset1, featureset2):
     '''
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION intersect STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
 
     index = index_featureset(featureset2)
 
@@ -684,12 +759,17 @@ def intersect(featureset1, featureset2):
     if 'crs' in featureset2.keys():
         new_featureset['crs'] = featureset2['crs']
 
+    logging.info('FUNCTION intersect STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
 def erase(featureset, erase_featureset):
     '''
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION erase STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
 
     index = index_featureset(erase_featureset)
 
@@ -713,6 +793,7 @@ def erase(featureset, erase_featureset):
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
 
+    logging.info('FUNCTION erase STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
@@ -735,6 +816,11 @@ def project_feature(f, project):
 
 
 def project_local(featureset):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION project_local STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     if ('crs' in featureset.keys() and
             featureset['crs']['properties']['name'] ==
             'urn:ogc:def:uom:EPSG::9102'):
@@ -774,10 +860,16 @@ def project_local(featureset):
                           crs=dict(type="name",
                                    properties=dict(name=name)))
 
+    logging.info('FUNCTION project_local STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
 def project_global(featureset):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION project_global STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     if ('crs' in featureset.keys() and
             featureset['crs']['properties']['name'] == 'EPSG:4326'):
         return featureset
@@ -808,6 +900,7 @@ def project_global(featureset):
                           features=new_features,
                           crs=dict(type="name",
                                    properties=dict(name=name)))
+    logging.info('FUNCTION project_global STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
@@ -815,6 +908,11 @@ def buffer_to_dist(featureset, distance):
     '''
     Buffer a geometry with a given distance (assumed to be kilometers)
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION buffer_to_dist STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     if not (featureset['crs']['properties']['name'] ==
             'urn:ogc:def:uom:EPSG::9102'):
         raise ValueError('geometries must be projected with the World ' +
@@ -834,14 +932,28 @@ def buffer_to_dist(featureset, distance):
                           features=new_features)
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
+    logging.info('FUNCTION buffer_to_dist STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
 def get_presence(attributes, field):
-    return any(item[field] > 0 for item in attributes)
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_presence STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
+    result = any(item[field] > 0 for item in attributes)
+
+    logging.info('FUNCTION get_presence STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
+    return result
 
 
 def get_area_by_attributes(featureset, posfields, negfields):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_area_by_attributes STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     posfields = posfields.split(',') if posfields else []
     negfields = negfields.split(',') if negfields else []
     try:
@@ -852,10 +964,17 @@ def get_area_by_attributes(featureset, posfields, negfields):
                               f['properties'][fld] < 0 for fld in negfields)])
     except:
         raise ValueError([f['properties'] for field in posfields for f in featureset['features'] if f['properties'][field] is None])
+    
+    logging.info('FUNCTION get_area_by_attributes STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return area_m / HA_CONVERSION
 
 
 def get_geom_by_attributes(featureset, posfields, negfields):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_geom_by_attributes STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     posfields = posfields.split(',') if posfields else []
     negfields = negfields.split(',') if negfields else []
     features = [f for f in featureset['features']
@@ -867,6 +986,7 @@ def get_geom_by_attributes(featureset, posfields, negfields):
                           features=features)
     if 'crs' in featureset.keys():
         new_featureset['crs'] = featureset['crs']
+    logging.info('FUNCTION get_geom_by_attributes STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
 
 
@@ -890,6 +1010,11 @@ def validate_featureset(featureset, fields=[None]):
 
 
 def get_area(featureset, field=None):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_area STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     # validate_featureset(featureset, [field])
 
     if field:
@@ -906,6 +1031,7 @@ def get_area(featureset, field=None):
                         for f in featureset['features']])
         else:
             area = 0
+    logging.info('FUNCTION get_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return area
 
 
@@ -962,6 +1088,11 @@ def get_histo_loss_area(histograms, forest_density=30):
     '''
     # density_map = {0: 10, 10: 25, 15: 40, 20: 55,
     #                25: 70, 30: 85, 50: 100, 75: 115}
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_histo_loss_area STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     density_map = {10: 15, 15: 30, 20: 45, 25: 60,
                    30: 75, 50: 90, 75: 105, 100: 120}
     if forest_density not in density_map.keys():
@@ -972,6 +1103,7 @@ def get_histo_loss_area(histograms, forest_density=30):
     histo_area_loss = {yr: 0.09 * sum([histograms[i] for i in indices])
                        for yr, indices in year_indices.items()}
 
+    logging.info('FUNCTION get_histo_loss_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histo_area_loss
 
 
@@ -980,9 +1112,15 @@ def get_histo_pre2001_area(histograms):
     Returns the sum of histo on tree cover loss, aggregated on years prior to
     2001
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_histo_pre2001_area STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     year_indices = range(15, 135, 15)
     histo_area_loss = 0.09 * sum([histograms[i] for i in year_indices])
 
+    logging.info('FUNCTION get_histo_pre2001_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histo_area_loss
 
 
@@ -990,10 +1128,16 @@ def get_histo_total_area(histograms):
     '''
     Returns total area of histo within the aoi
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_histo_total_area STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     year_indices = {(i+2001): range(i, 135, 15) for i in range(14)}
     histo_area_total = {yr: 0.09 * sum([histograms[i] for i in indices])
                         for yr, indices in year_indices.items()}
 
+    logging.info('FUNCTION get_histo_total_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histo_area_total
 
 
@@ -1002,10 +1146,17 @@ def get_date_from_timestamp(timestamp):
     Convert a timestamp (which may be in milliseconds, and is assumed to be
     UTC) to a date string of the form YYYY-MM-DD
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_date_from_timestamp STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     if not timestamp:
+        logging.info('FUNCTION get_date_from_timestamp STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
         return None
     if timestamp > 100000000000:
         timestamp = timestamp/1000
+    logging.info('FUNCTION get_date_from_timestamp STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
 
 
@@ -1014,11 +1165,17 @@ def get_species_count(intersection, field):
     Count number of unique species found within the features of an
     intersection with the user AOI
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_species_count STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     species_list = []
     for f in intersection['features']:
         species_string = f['properties'][field][1:-1].replace('"', '')
         species_list += species_string.split(',')
     species_set = set(species_list)
+    logging.info('FUNCTION get_species_count STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return len(species_set)
 
 
@@ -1027,6 +1184,11 @@ def get_feature_count(intersection, field):
     Count the number of features, or the number of features for each
     value in the intersection's field property
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_feature_count STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     if field:
         counts = {}
         for f in intersection['features']:
@@ -1034,8 +1196,10 @@ def get_feature_count(intersection, field):
                 counts[f['properties'][field]] += 1
             else:
                 counts[f['properties'][field]] = 1
+        logging.info('FUNCTION get_feature_count STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
         return counts
     else:
+        logging.info('FUNCTION get_feature_count STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
         return len(intersection['features'])
 
 
@@ -1044,6 +1208,11 @@ def pad_counts(counts, start_yr, end_yr):
     Pad result object for fires counts by month or year with zeros
     for all missing months or years
     '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION pad_counts STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
     if counts:
         if '-' in counts.keys():
             new_counts = {'{}-{}'.format(yr, mn): 0 for mn in range(1, 13)
@@ -1056,6 +1225,7 @@ def pad_counts(counts, start_yr, end_yr):
     for key in new_counts.keys():
         if key in counts.keys():
             new_counts[key] = counts[key]
+    logging.info('FUNCTION pad_counts STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_counts
 
 
@@ -1064,7 +1234,15 @@ def vals_by_year(val, start_yr, end_yr):
     Store value in a by-year object (for consistency with the rest
     of the Palm Risk tool)
     '''
-    return {str(yr): val for yr in range(int(start_yr), int(end_yr)+1)}
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION vals_by_year STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+    
+    result = {str(yr): val for yr in range(int(start_yr), int(end_yr)+1)}
+
+    logging.info('FUNCTION vals_by_year STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
+    return result
 
 
 def is_valid(analysis_method):
