@@ -76,7 +76,7 @@
 		"field": ""
 	},
 	"modis": {
-		"id": "ee6e3672-c30c-45ce-b2d6-30545c6cfcac",
+		"id": "d7bab599-4501-4bdd-9f71-1f273fcc4a84",
 		"category": "Year",
 		"field": ""
 	},
@@ -86,7 +86,7 @@
 		"field": ""
 	},
 	"viirs": {
-		"id": "cb35125d-46da-488c-8a33-1ceb15732444",
+		"id": "cc074b15-d311-43cf-8dba-beec571d2406",
 		"category": "Year,Month",
 		"field": "ACQ_DATE"
 	},
