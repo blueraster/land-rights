@@ -28,7 +28,8 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'get_feature_count', 'test_ip', 'esri_attributes', 'get_presence',
            'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area',
            'get_area_by_attributes', 'get_geom_by_attributes', 'pad_counts',
-           'vals_by_year', 'split', 'split_featureset']
+           'vals_by_year', 'split', 'split_featureset', 'get_counts_by_year',
+           'get_count_by_year', 'combine_counts_by_year']
 
 
 HA_CONVERSION = 10000
@@ -988,6 +989,39 @@ def get_geom_by_attributes(featureset, posfields, negfields):
         new_featureset['crs'] = featureset['crs']
     logging.info('FUNCTION get_geom_by_attributes STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
+
+
+# def get_counts_by_year(layer_endpoints, featureset):
+#     global FUNCTION_COUNT
+#     FUNCTION_COUNT += 1
+#     logging.info('FUNCTION get_counts_by_year STEP {} START'.format(FUNCTION_COUNT))
+#     t0 = time()
+
+#     counts = {}
+#     for layer_endpoint in layer_endpoints.split(','):
+#         yr = layer_endpoint.replace('/ImageServer','')[-4:]
+#         frequencies = esri_server2histo(layer_endpoint, featureset)
+#         counts[yr] = sum([i * freq for i, freq in enumerate(frequencies)])
+
+#     logging.info('FUNCTION get_counts_by_year STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
+#     return counts
+
+
+def get_count_by_year(layer_endpoint, featureset, yr):
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION get_counts_by_year STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
+    frequencies = esri_server2histo(layer_endpoint.replace('2000', yr), featureset)
+
+    logging.info('FUNCTION get_counts_by_year STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
+    return (yr, sum([i * freq for i, freq in enumerate(frequencies)]))
+
+
+def combine_counts_by_year(*counts):
+    logging.info(counts)
+    return {yr: count for yr, count in counts}
 
 
 # ------------------------- Calculation Functions --------------------------
