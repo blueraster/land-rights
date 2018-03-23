@@ -255,8 +255,26 @@
 		"graph": {
 			"aoi": ["geojson", "{user_json}"],
 			"aoi-split": ["split", "aoi"],
-			"counts-by-year-dense": ["esri_count_groupby", "{layer_url}", "aoi-split", "{category}"],
-			"counts-by-year": ["pad_counts", "counts-by-year-dense", "2001", "2016"]
+			"count_00": ["get_count_by_year", "{layer_url}", "aoi-split", "2000"],
+			"count_01": ["get_count_by_year", "{layer_url}", "aoi-split", "2001"],
+			"count_02": ["get_count_by_year", "{layer_url}", "aoi-split", "2002"],
+			"count_03": ["get_count_by_year", "{layer_url}", "aoi-split", "2003"],
+			"count_04": ["get_count_by_year", "{layer_url}", "aoi-split", "2004"],
+			"count_05": ["get_count_by_year", "{layer_url}", "aoi-split", "2005"],
+			"count_06": ["get_count_by_year", "{layer_url}", "aoi-split", "2006"],
+			"count_07": ["get_count_by_year", "{layer_url}", "aoi-split", "2007"],
+			"count_08": ["get_count_by_year", "{layer_url}", "aoi-split", "2008"],
+			"count_09": ["get_count_by_year", "{layer_url}", "aoi-split", "2009"],
+			"count_10": ["get_count_by_year", "{layer_url}", "aoi-split", "2010"],
+			"count_11": ["get_count_by_year", "{layer_url}", "aoi-split", "2011"],
+			"count_12": ["get_count_by_year", "{layer_url}", "aoi-split", "2012"],
+			"count_13": ["get_count_by_year", "{layer_url}", "aoi-split", "2013"],
+			"count_14": ["get_count_by_year", "{layer_url}", "aoi-split", "2014"],
+			"count_15": ["get_count_by_year", "{layer_url}", "aoi-split", "2015"],
+			"count_16": ["get_count_by_year", "{layer_url}", "aoi-split", "2016"],
+			"counts-by-year": ["combine_counts_by_year", "count_00", "count_01", "count_02", 
+				"count_03", "count_04", "count_05", "count_06", "count_07", "count_08", "count_09",
+				"count_10", "count_11", "count_12", "count_13", "count_14", "count_15", "count_16"]
 		},
 		"outputs": ["counts-by-year"]
 	},
