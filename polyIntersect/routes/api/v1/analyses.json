@@ -10,10 +10,9 @@
 	},
 	"geom": {
 		"graph": {
-			"aoi-split": ["geojson", "{user_json}"],
-			"aoi-diss": ["dissolve", "aoi_split"],
-			"aoi": ["split", "aoi-diss"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
+			"aoi": ["geojson", "{user_json}"],
+			"aoi-diss": ["dissolve", "aoi"],
+	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-diss",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
 	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"]
