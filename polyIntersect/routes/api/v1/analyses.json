@@ -15,7 +15,7 @@
 	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi-diss",
 	        	"{out_fields}", "{where}", "{token}"],
 	        "dissolve-data": ["dissolve", "reference-data", "{category}"],
-	        "intersect-geom": ["intersect", "aoi-split", "dissolve-data"]
+	        "intersect-geom": ["intersect", "aoi", "dissolve-data"]
 		},
 		"outputs": ["intersect-geom"]
 	},
