@@ -1,148 +1,176 @@
 {
-	"brazil-biomes": {
-		"id": "d874c75e-ae0c-44d6-8554-ce4661471804",
-		"category": "name",
-		"field": ""
-	},
-	"idn-legal": {
-		"id": "e0c771b1-7ab1-489b-834c-d90bd6b23a63",
-		"category": "legal_class",
-		"field": ""
-	},
-	"idn-forest-moratorium": {
-		"id": "1d62c2f7-b7b4-473b-baf9-b90b6608613c",
-		"category": "",
-		"field": ""
-	},
-	"wdpa_esri": {
-		"id": "c8c3913f-3acf-47e4-836f-025256cc14f2",
-		"category": "iucn_cat",
-		"field": "desig_eng"
-	},
-	"wdpa": {
-		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
-		"category": "",
-		"field": ""
-	},
-	"plantations-by-species": {
-		"id": "2577898d-93ea-42ed-9e6d-9571632d3884",
-		"category": "spec_org",
-		"field": ""
-	},
-	"plantations-by-type": {
-		"id": "c1f35267-39ce-4b7e-8d4c-295bc1888ee6",
-		"category": "spec_simp",
-		"field": "",
-		"where": "type_text = 'Large industrial plantation'"
-	},
-	"land-rights": {
-		"id": "ba38e1d9-d026-43b5-8944-23bd71473f56", 
-		"category": "",
-		"field": ""
-	},
-	"aze": {
-		"id": "6a276d13-a079-4ba4-9c1f-54936b458b33",
-		"category": "sitename_1",
-		"field": "species"
-	},
-	"ifl": {
-		"id": "79e15345-5c83-4d41-94b4-03f2b2018b77",
-		"category": "",
-		"field": ""
-	},
-	"peat - Esri, DO NOT USE keeps returning M and Z vals": {
-		"id": "1471aec4-4790-4634-bec0-4a497fd6e4e8",
-		"category": "",
-		"field": ""
-	},
 	"peat": {
+		"provider": "cartodb",
+		"url": "https://wri-01.carto.com/tables/idn_peat_lands/public/map",
+		"category": "",
 		"id": "2fe0f74a-9f91-43a3-98db-bed55a01077f",
-		"category": "",
-		"field": ""
-	},
-	"peat-pr": {
-		"id": "d6621f4c-e5e3-4f6c-81d7-6239401fc378",
-		"category": "",
-		"field": ""
-	},
-	"soy": {
-		"id": "c1ad49a5-eae8-4667-8af0-50db3a0ce32c",
-		"category": "",
-		"field": ""
-	},
-	"soy-cerrado": {
-		"id": "9483f082-4829-4be0-b340-ea6740ed3365",
-		"category": "",
-		"field": ""
-	},
-	"modis": {
-		"id": "2b867e5b-242b-491c-85b7-0a7203e14a38",
-		"category": "",
 		"field": ""
 	},
 	"modis-24": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/Fires/FIRMS_Global_24h/MapServer/1",
+		"category": "",
 		"id": "baac30f5-5ca0-4b95-87f2-3a5d2500e08e",
-		"category": "",
 		"field": ""
 	},
-	"viirs": {
-		"id": "cc074b15-d311-43cf-8dba-beec571d2406",
-		"category": "Year,Month",
-		"field": "ACQ_DATE"
-	},
-	"viirs-24": {
-		"id": "9ea7e9ab-d69e-492a-9c0b-550c9f955110",
+	"land-rights": {
+		"provider": "cartodb",
+		"url": "https://wri-01.carto.com/tables/gfw_land_rights",
 		"category": "",
-		"field": "ACQ_DATE"
-	},
-	"plantations": {
-		"id": "f2d7db47-dc12-4a39-9514-1d5eb700c662",
-		"category": "",
+		"id": "ba38e1d9-d026-43b5-8944-23bd71473f56",
 		"field": ""
 	},
-	"hnd-forest": {
-		"id": "f26e69a7-077f-4b49-871e-53363f72f9e9",
-		"category": "",
-		"field": ""
-	},
-	"afr-forest": {
-		"id": "f2fb1982-68c5-45b9-bcdc-7f80e94e2dc1",
-		"category": "",
-		"field": ""
-	},
-	"no-dataset": {
-		"id": "",
-		"category": "",
-		"field": ""
-	},
-	"prodes": {
-		"id": "747ee67e-262f-4a34-abce-48a6932df066",
-		"category": "ano",
+	"idn-legal": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/commodities/MapServer/13",
+		"category": "legal_class",
+		"id": "e0c771b1-7ab1-489b-834c-d90bd6b23a63",
 		"field": ""
 	},
 	"gadm": {
-		"id": "9d6e6723-1215-4714-97f0-6b740e0b3a2e",
+		"provider": "featureservice",
+		"url": "https://gfw-staging.wri.org/arcgis/rest/services/admin/MapServer/2",
 		"category": "",
+		"id": "9d6e6723-1215-4714-97f0-6b740e0b3a2e",
+		"field": ""
+	},
+	"wdpa": {
+		"provider": "cartodb",
+		"url": "https://wri-01.carto.com/tables/wdpa_protected_areas",
+		"category": "",
+		"id": "64820260-7cb3-45a8-a6fb-f7e784e95cf4",
 		"field": ""
 	},
 	"gadm2": {
-		"id": "daa63ccb-5a44-4776-9fc5-05b357fd54c1",
+		"provider": "featureservice",
+		"url": "https://gfw-staging.wri.org/arcgis/rest/services/admin/MapServer/0",
 		"category": "NAME_0,NAME_1,NAME_2,NAME_ALL",
+		"id": "daa63ccb-5a44-4776-9fc5-05b357fd54c1",
 		"field": ""
-	},	
-	"forest-change": {
-		"id": "e900e58b-f22c-467b-898f-945feddafe04",
-		"category": "FID_indonesia,FID_cerrado,FID_brazil_legal_amazon,FID_brazil_biomes,FID_south_america,FID_southeast_asia",
+	},
+	"prodes": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/forest_change/MapServer/1",
+		"category": "ano",
+		"id": "747ee67e-262f-4a34-abce-48a6932df066",
+		"field": ""
+	},
+	"viirs": {
+		"provider": "featureservice",
+		"url": "http://gis-gfw.wri.org/arcgis/rest/services/Fires/FIRMS_Global_VIIRS/MapServer/8",
+		"category": "Year,Month",
+		"id": "cc074b15-d311-43cf-8dba-beec571d2406",
+		"field": "ACQ_DATE"
+	},
+	"soy-cerrado": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/country_data/south_america/MapServer/27",
+		"category": "",
+		"id": "9483f082-4829-4be0-b340-ea6740ed3365",
+		"field": ""
+	},
+	"peat - Esri, DO NOT USE keeps returning M and Z vals": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/country_data/asia/MapServer/10",
+		"category": "",
+		"id": "1471aec4-4790-4634-bec0-4a497fd6e4e8",
+		"field": ""
+	},
+	"modis": {
+		"provider": "featureservice",
+		"url": "http://gis-gfw.wri.org/arcgis/rest/services/image_services/MODIS_2000/ImageServer",
+		"category": "",
+		"id": "2b867e5b-242b-491c-85b7-0a7203e14a38",
+		"field": ""
+	},
+	"brazil-biomes": {
+		"provider": "cartodb",
+		"url": "https://wri-01.carto.com/tables/bra_biomes",
+		"category": "name",
+		"id": "d874c75e-ae0c-44d6-8554-ce4661471804",
+		"field": ""
+	},
+	"soy": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/image_services/soy_total/ImageServer",
+		"category": "",
+		"id": "c1ad49a5-eae8-4667-8af0-50db3a0ce32c",
 		"field": ""
 	},
 	"primary-forest": {
-		"id": "79133ed6-0999-494a-9d3d-f160eb993331",
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/commodities/MapServer/32",
 		"category": "",
+		"id": "79133ed6-0999-494a-9d3d-f160eb993331",
 		"field": ""
 	},
+	"wdpa_esri": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/cached/wdpa_protected_areas/MapServer/0",
+		"category": "iucn_cat",
+		"id": "c8c3913f-3acf-47e4-836f-025256cc14f2",
+		"field": "desig_eng"
+	},
 	"palm-risk-union": {
-		"id": "5eadbc55-0a44-41f4-90be-f0e36b2e5d03",
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/palm_risk/MapServer/0",
 		"category": "FID_plantation,FID_wdpa,FID_peat,FID_forest_cover_coverage,FID_forest_cover",
+		"id": "5eadbc55-0a44-41f4-90be-f0e36b2e5d03",
+		"field": ""
+	},
+	"plantations-by-type": {
+		"field": "",
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/forest_cover/MapServer/5",
+		"category": "spec_simp",
+		"id": "c1f35267-39ce-4b7e-8d4c-295bc1888ee6",
+		"where": "type_text = 'Large industrial plantation'"
+	},
+	"viirs-24": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/Fires/FIRMS_Global_24h/MapServer/0",
+		"category": "",
+		"id": "9ea7e9ab-d69e-492a-9c0b-550c9f955110",
+		"field": "ACQ_DATE"
+	},
+	"ifl": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/forest_cover/MapServer/0",
+		"category": "",
+		"id": "79e15345-5c83-4d41-94b4-03f2b2018b77",
+		"field": ""
+	},
+	"aze": {
+		"provider": "cartodb",
+		"url": "https://wri-01.carto.com/tables/alliance_for_zero_extinction_sites_species_joi",
+		"category": "sitename_1",
+		"id": "6a276d13-a079-4ba4-9c1f-54936b458b33",
+		"field": "species"
+	},
+	"plantations-by-species": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/forest_cover/MapServer/8",
+		"category": "spec_org",
+		"id": "eaf07d6c-ba45-4fb9-afb7-a8cbc7e7fc2c",
+		"field": ""
+	},
+	"idn-forest-moratorium": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/commodities/MapServer/7",
+		"category": "",
+		"id": "1d62c2f7-b7b4-473b-baf9-b90b6608613c",
+		"field": ""
+	},
+	"no-dataset": {
+		"category": "",
+		"id": "",
+		"field": ""
+	},
+	"forest-change": {
+		"provider": "featureservice",
+		"url": "https://gis-gfw.wri.org/arcgis/rest/services/admin/MapServer/3",
+		"category": "FID_indonesia,FID_cerrado,FID_brazil_legal_amazon,FID_brazil_biomes,FID_south_america,FID_southeast_asia",
+		"id": "e900e58b-f22c-467b-898f-945feddafe04",
 		"field": ""
 	}
 }
