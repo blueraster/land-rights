@@ -88,34 +88,47 @@ def execute_model(analysis, dataset, user_json, geojson2, distance):
     # token = tokens[ip]
     token = ''
 
-    # get gfw api url for dataset based on its id
-    dataset_ids = datasets[dataset]['id'] if dataset else ''
+    # # get gfw api url for dataset based on its id
+    # dataset_ids = datasets[dataset]['id'] if dataset else ''
 
-    # query gfw api for the layer url
-    if dataset_ids:
-        layer_urls = []
-        for dataset_id in dataset_ids.split(','):
-            try:
-                host = 'https://production-api.globalforestwatch.org/v1'
-                dataset_endpoint = 'dataset/{}'.format(dataset_id)
-                dataset_url = path.join(host, dataset_endpoint)
-                dataset_info = requests.get(dataset_url).json()
-                if 'errors' in dataset_info.keys():
-                    raise ValueError(dataset_info['errors'])
-                layer_urls.append(dataset_info['data']['attributes']['connectorUrl'])
-                if '?' in layer_urls[-1]:
-                    layer_urls[-1] = layer_urls[-1].split('?')[0]
-                provider = dataset_info['data']['attributes']['provider']
-                if provider == 'featureservice':
-                    gfw_dataset = 'esri:server'
-                elif provider == 'cartodb':
-                    gfw_dataset = 'cartodb'
-                else:
-                    raise ValueError('GFW dataset endpoint not supported')
+    # # query gfw api for the layer url
+    # if dataset_ids:
+    #     layer_urls = []
+    #     for dataset_id in dataset_ids.split(','):
+    #         try:
+    #             host = 'https://production-api.globalforestwatch.org/v1'
+    #             dataset_endpoint = 'dataset/{}'.format(dataset_id)
+    #             dataset_url = path.join(host, dataset_endpoint)
+    #             dataset_info = requests.get(dataset_url).json()
+    #             if 'errors' in dataset_info.keys():
+    #                 raise ValueError(dataset_info['errors'])
+    #             layer_urls.append(dataset_info['data']['attributes']['connectorUrl'])
+    #             if '?' in layer_urls[-1]:
+    #                 layer_urls[-1] = layer_urls[-1].split('?')[0]
+    #             provider = dataset_info['data']['attributes']['provider']
+    #             if provider == 'featureservice':
+    #                 gfw_dataset = 'esri:server'
+    #             elif provider == 'cartodb':
+    #                 gfw_dataset = 'cartodb'
+    #             else:
+    #                 raise ValueError('GFW dataset endpoint not supported')
 
-            except Exception as e:
-                raise ValueError((str(e), requests.get(dataset_url).text))
-        layer_url = ','.join(layer_urls)
+    #         except Exception as e:
+    #             raise ValueError((str(e), requests.get(dataset_url).text))
+    #     layer_url = ','.join(layer_urls)
+    # else:
+    #     layer_url = ''
+    #     gfw_dataset = ''
+
+    layer_url = datasets[dataset]['url'] if dataset else ''
+    if dataset:
+        layer_url = datasets[dataset]['url']
+        if datasets[dataset]['provider'] == 'featureservice':
+            gfw_dataset = 'esri:server'
+        elif datasets[dataset]['provider'] == 'cartodb':
+            gfw_dataset = 'cartodb'
+        else:
+            raise ValueError('GFW dataset type not supported')
     else:
         layer_url = ''
         gfw_dataset = ''
