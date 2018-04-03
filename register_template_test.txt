@@ -1,1 +1,0 @@
-},\n\t{\n\t\t"path":\ "/v1/polyIntersect/ENDPOINT_NAME",\n\t\t"method":\ "GET",\n\t\t"binary":\ true,\n\t\t"redirect":\ {\n\t\t\t"method":\ "GET",\n\t\t\t"path":\ "/api/v1/polyIntersect/ENDPOINT_NAME"\n\t\t}\n\t}]
