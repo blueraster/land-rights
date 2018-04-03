@@ -11,30 +11,30 @@ from sample_data import INTERSECT_PARTIALLY_WITHIN_GEOJSON
 
 
 def test_hello_local():
-    url = 'http://localhost:5700/api/v1/polyIntersect/{}/hello'
+    url = 'http://localhost:5700/api/v1/gfw-pro/polyIntersect/{}/hello'
     print(url.format(analysis))
     result = requests.get(url.format(analysis))
     print(result)
 
 def test_hello_control_tower():
-    url = 'http://localhost:9000/v1/polyIntersect/{}/hello'
+    url = 'http://localhost:9000/v1/gfw-pro/polyIntersect/{}/hello'
     print(url.format(analysis))
     result = requests.get(url.format(analysis))
     print(result)
 
 
 def test_local():
-    url = 'http://localhost:5700/api/v1/polyIntersect/{}/{}'
+    url = 'http://localhost:5700/api/v1/gfw-pro/polyIntersect/{}/{}'
     run_request(url)
 
 
 def test_control_tower():
-    url = 'http://localhost:9000/v1/polyIntersect/{}/{}'
+    url = 'http://localhost:9000/v1/gfw-pro/polyIntersect/{}/{}'
     run_request(url)
 
 
 def test_control_tower_remote():
-    url = 'http://staging-api.globalforestwatch.org/v1/polyIntersect/{}/{}'
+    url = 'http://staging-api.globalforestwatch.org/v1/gfw-pro/polyIntersect/{}/{}'
     run_request(url)
 
 

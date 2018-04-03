@@ -20,7 +20,7 @@ logging.basicConfig(
 app = Flask(__name__)
 
 # Routing
-app.register_blueprint(endpoints, url_prefix='/api/v1/polyIntersect')
+app.register_blueprint(endpoints, url_prefix='/api/v1/gfw-pro/polyIntersect')
 
 # CT
 info = load_config_json('register')
