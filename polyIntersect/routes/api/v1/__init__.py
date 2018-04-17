@@ -6,7 +6,7 @@ def error(status=400, detail='Bad Request', traceback=''):
         'status': status,
         'detail': detail,
         'traceback': traceback,
-        'david': 'FIONA'
+        'date': '04/17/2018'
     }]), status
 
 
