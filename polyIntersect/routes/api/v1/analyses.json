@@ -239,12 +239,12 @@
 			"aoi-split": ["split", "aoi"],
 	        "reference-data": ["esri_attributes", "{layer_url}", "aoi-split",
 	        	"{out_fields}"],
-			"south-america": ["get_presence", "reference-data", "FID_south_america"],
-			"southeast-asia": ["get_presence", "reference-data", "FID_southeast_asia"],
-			"brazil-legal-amazon": ["get_presence", "reference-data", "FID_brazil_legal_amazon"],
-			"brazil-biomes": ["get_presence", "reference-data", "FID_brazil_biomes"],
-			"brazil-cerrado-biome": ["get_presence", "reference-data", "FID_cerrado"],
-			"indonesia": ["get_presence", "reference-data", "FID_indonesia"]
+			"south-america": ["get_presence", "reference-data", "fid_south_america"],
+			"southeast-asia": ["get_presence", "reference-data", "fid_southeast_asia"],
+			"brazil-legal-amazon": ["get_presence", "reference-data", "fid_brazil_legal_amazon"],
+			"brazil-biomes": ["get_presence", "reference-data", "fid_brazil_biomes"],
+			"brazil-cerrado-biome": ["get_presence", "reference-data", "fid_cerrado"],
+			"indonesia": ["get_presence", "reference-data", "fid_indonesia"]
 		},
 		"outputs": ["south-america", "southeast-asia", "brazil-legal-amazon", "brazil-biomes", 
 			    "brazil-cerrado-biome", "indonesia"]
