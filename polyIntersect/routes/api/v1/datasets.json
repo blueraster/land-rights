@@ -44,7 +44,7 @@
 	"gadm2": {
 		"provider": "featureservice",
 		"url": "https://gis-gfw.wri.org/arcgis/rest/services/admin/MapServer/0",
-		"category": "NAME_0,NAME_1,NAME_2,NAME_ALL",
+		"category": "name_0,name_1,name_2,name_all",
 		"id": "daa63ccb-5a44-4776-9fc5-05b357fd54c1",
 		"field": ""
 	},
@@ -114,7 +114,7 @@
 	"palm-risk-union": {
 		"provider": "featureservice",
 		"url": "https://gis-gfw.wri.org/arcgis/rest/services/palm_risk/MapServer/0",
-		"category": "FID_plantation,FID_wdpa,FID_peat,FID_forest_cover_coverage,FID_forest_cover",
+		"category": "fid_plantation,fid_wdpa,fid_peat,fid_forest_cover_coverage,fid_forest_cover",
 		"id": "5eadbc55-0a44-41f4-90be-f0e36b2e5d03",
 		"field": ""
 	},
@@ -169,7 +169,7 @@
 	"forest-change": {
 		"provider": "featureservice",
 		"url": "https://gis-gfw.wri.org/arcgis/rest/services/admin/MapServer/3",
-		"category": "FID_indonesia,FID_cerrado,FID_brazil_legal_amazon,FID_brazil_biomes,FID_south_america,FID_southeast_asia",
+		"category": "fid_indonesia,fid_cerrado,fid_brazil_legal_amazon,fid_brazil_biomes,fid_south_america,fid_southeast_asia",
 		"id": "e900e58b-f22c-467b-898f-945feddafe04",
 		"field": ""
 	}
