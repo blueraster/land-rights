@@ -29,13 +29,17 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area',
            'get_area_by_attributes', 'get_geom_by_attributes', 'pad_counts',
            'vals_by_year', 'split', 'split_featureset', 'get_counts_by_year',
-           'get_count_by_year', 'combine_counts_by_year']
+           'get_count_by_year', 'combine_counts_by_year', 'get_ok']
 
 
 HA_CONVERSION = 10000
 COMPLEXITY_THRESHOLD = 1.2
 REQUEST_THRESHOLD = 20
 FUNCTION_COUNT = 0
+
+
+def get_ok():
+    return 'ok'
 
 
 def test_ip():

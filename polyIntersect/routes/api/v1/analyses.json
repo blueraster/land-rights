@@ -1,12 +1,9 @@
 {
 	"test": {
 		"graph": {
-			"aoi-split": ["geojson", "{user_json}"],
-			"aoi": ["dissolve", "aoi-split"],
-	        "reference-data": ["{gfw_dataset}", "{layer_url}", "aoi",
-	        	"{out_fields}", "{where}", "{token}"]
+			"ok": ["get_ok"]
 		},
-		"outputs": ["reference-data"]
+		"outputs": ["ok"]
 	},
 	"area": {
 		"graph": {
