@@ -157,8 +157,6 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
     params['f'] = 'geojson'
     params['geometryType'] = 'esriGeometryPolygon'
     params['spatialRel'] = 'esriSpatialRelIntersects'
-    # params['geometry'] = str({'rings': bbox(json.loads(aoi)['features'][0]),
-    #                           'spatialReference': {'wkid': 4326}})
 
     # if protected service, retrieve token
     if token:
@@ -196,11 +194,6 @@ def esri_server2ogr(layer_endpoint, aoi, out_fields, where='1=1', token=''):
 
     logging.info('FUNCTION esri_server2ogr STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return featureset
-
-    # req = requests.post(url, data=params)
-    # req.raise_for_status()
-
-    # return json2ogr(req.text)
 
 
 def esri_server2histo(layer_endpoint, aoi):
@@ -412,8 +405,6 @@ def cartodb2ogr(service_endpoint, aoi, out_fields, where='', _=''):
     if isinstance(aoi, str):
         aoi = json.loads(aoi)
 
-    # raise ValueError()
-
     params = {}
     fields = ['ST_AsGeoJSON(the_geom) as geometry']
     out_fields = out_fields.split(',')
@@ -465,44 +456,31 @@ def split_featureset(featureset):
     logging.info('FUNCTION split_featureset STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-    # new_featuresets = []
     feature_groups = []
     x1s, y1s, x2s, y2s = zip(*[bounds(f) for f in featureset['features']])  # all min/max x's and y's
     x1fc, y1fc, x2fc, y2fc = min(x1s), min(y1s), max(x2s), max(y2s)         # min/max x/y for whole feature class
-    # if x2fc - x1fc > REQUEST_THRESHOLD:
     x_splits = ([x1fc + (x + 1) * REQUEST_THRESHOLD for x in
                  range(int((x2fc - x1fc - 1) / REQUEST_THRESHOLD))]
                 if x2fc - x1fc > REQUEST_THRESHOLD else [])
-    # if y2fc - y2fc > REQUEST_THRESHOLD:
     y_splits = ([y1fc + (y + 1) * REQUEST_THRESHOLD for y in
                  range(int((y2fc - y1 - 1) / REQUEST_THRESHOLD))]
                 if y2fc - y2fc > REQUEST_THRESHOLD else [])
     if x_splits:
-        # x_featuresets = [dict(type=featureset['type'], features=[])
-        #                  for i in range(len(x_splits) + 1)]
         x_feature_groups = [[] for i in range(len(x_splits) + 1)]
         for f in featureset['features']:
             x1, y1, x2, y2 = bounds(f)
             for i, x_split in enumerate(x_splits):
                 if x1 + (x2 - x1) / 2 < x_split:
-                    # x_featuresets[i]['features'].append(f)
                     x_feature_groups[i].append(f)
                     break
                 if i + 1 == len(x_splits):
-                    # x_featuresets[-1]['features'].append(f)
                     x_feature_groups[-1].append(f)
     else:
-        # x_featuresets = [dict(type=featureset['type'],
-        #                  features=featureset['features'])]
         x_feature_groups = [featureset['features']]
 
     if y_splits:
-        # for x_featureset in x_featuresets:
         for x_feature_group in x_feature_groups:
-            # y_featuresets = [dict(type=x_featureset['type'], features=[])
-            #                  for i in range(len(y_splits) + 1)]
             y_feature_groups = [[] for i in range(len(y_splits) + 1)]
-            # for f in x_featureset['features']:
             for f in x_feature_group:
                 x1, y1, x2, y2 = bounds(f)
                 for i, y_split in enumerate(y_splits):
@@ -532,20 +510,6 @@ def split_featureset(featureset):
 
     logging.info('FUNCTION split_featureset STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
-
-
-        #     if x1 + (x2 - x1) / 2 <= x_split:
-        #         new_features[0]['features'].append(f)
-        #     else:
-        #         new_features[1]['features'].append(f)
-        # featureset_left = dict(type=user_json['type'],
-        #                        features=[f for f in user_json['features'] if
-        #                                  analysis_funcs.bounds_centroid(f)[0]
-        #                                  <= x_half])
-        # featureset_right = dict(type=user_json['type'],
-        #                         features=[f for f in user_json['features'] if
-        #                                   analysis_funcs.bounds_centroid(f)[0]
-        #                                   > x_half])
 
 
 def get_split_boxes(f):
@@ -1073,73 +1037,15 @@ def get_area(featureset, field=None):
     return area
 
 
-# def get_area_percent(featureset, aoi_area, aoi_field=None, int_field=None):
-#     # validate_featureset(featureset, [int_field, aoi_field])
-
-#     if aoi_field and int_field:
-#         area_pct = {}
-#         for aoi, area in aoi_area.items():
-#             area_pct[aoi] = {}
-#             for f in [f for f in featureset['features'] if
-#                       f['properties'][aoi_field] == aoi]:
-#                 pct = f['geometry'].area / HA_CONVERSION / area * 100
-#                 int_category = f['properties'][int_field]
-#                 if int_category in area_pct[aoi].keys():
-#                     area_pct[aoi][int_category] += pct
-#                 else:
-#                     area_pct[aoi][int_category] = pct
-#     elif aoi_field:
-#         area_pct = {}
-#         for f in featureset['features']:
-#             aoi = f['properties'][aoi_field]
-#             area = aoi_area[aoi]
-#             pct = f['geometry'].area / HA_CONVERSION / area * 100
-#             if aoi in area_pct.keys():
-#                 area_pct[aoi] += pct
-#             else:
-#                 area_pct[aoi] = pct
-#         for aoi in aoi_area.keys():
-#             if aoi not in area_pct.keys():
-#                 area_pct[aoi] = 0
-#     elif int_field:
-#         area_pct = {}
-#         for f in featureset['features']:
-#             pct = f['geometry'].area / HA_CONVERSION / aoi_area * 100
-#             int_category = f['properties'][int_field]
-#             if int_category in area_pct.keys():
-#                 area_pct[int_category] += pct
-#             else:
-#                 area_pct[int_category] = pct
-#     else:
-#         if featureset['features']:
-#             area_pct = sum([f['geometry'].area / HA_CONVERSION / aoi_area
-#                             * 100 for f in featureset['features']])
-#         else:
-#             area_pct = 0
-
-#     return area_pct
-
-
 def get_histo_loss_area(histograms):
     '''
     Returns the sum of tree cover loss for years 2001 through 2014
     '''
-    # density_map = {0: 10, 10: 25, 15: 40, 20: 55,
-    #                25: 70, 30: 85, 50: 100, 75: 115}
     global FUNCTION_COUNT
     FUNCTION_COUNT += 1
     logging.info('FUNCTION get_histo_loss_area STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-#     density_map = {10: 15, 15: 30, 20: 45, 25: 60,
-#                    30: 75, 50: 90, 75: 105, 100: 120}
-#     if forest_density not in density_map.keys():
-#         raise ValueError('Forest density must be one of the following:\n' +
-#                          '  10, 15, 20, 25, 30, 50, 75')
-#     year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 135, 15)
-#                     for i in range(14)}
-#     histo_area_loss = {yr: 0.09 * sum([histograms[i] for i in indices])
-#                        for yr, indices in year_indices.items()}
     year_indices = {(i+2001): i+1 for i in range(13)}
     histo_area_loss = {year: 0.09 * histograms[year_index] for year, year_index in year_indices.items()}
 
@@ -1157,8 +1063,6 @@ def get_histo_pre2001_area(histograms):
     logging.info('FUNCTION get_histo_pre2001_area STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-#     year_indices = range(15, 135, 15)
-#     histo_area_loss = 0.09 * sum([histograms[i] for i in year_indices])
     histo_area_loss = 0.09 * histograms[14]
 
     logging.info('FUNCTION get_histo_pre2001_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
@@ -1174,9 +1078,6 @@ def get_histo_total_area(histograms):
     logging.info('FUNCTION get_histo_total_area STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-#     year_indices = {(i+2001): range(i, 135, 15) for i in range(14)}
-#     histo_area_total = {yr: 0.09 * sum([histograms[i] for i in indices])
-#                         for yr, indices in year_indices.items()}
     year_indices = {(i+2000): i for i in range(15)}
     histo_area_total = {year: 0.09 * histograms[year_index] for year, year_index in year_indices.items()}
 
