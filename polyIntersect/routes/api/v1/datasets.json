@@ -44,7 +44,7 @@
 	"gadm2": {
 		"provider": "featureservice",
 		"url": "https://gis-gfw.wri.org/arcgis/rest/services/admin/MapServer/0",
-		"category": "name_0,name_1,name_2,name_all",
+		"category": "name_0,name_1,name_2,name_all,gadmid",
 		"id": "daa63ccb-5a44-4776-9fc5-05b357fd54c1",
 		"field": ""
 	},
