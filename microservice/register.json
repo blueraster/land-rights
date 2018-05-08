@@ -1,21 +1,21 @@
 {
 	"name": "#(service.name)",
 	"endpoints": [{
-		"path": "/v1/polyIntersect/ANALYSIS_KEY/hello",
+		"path": "/v1/gfw-pro/polyIntersect/ANALYSIS_KEY/hello",
 		"method": "GET",
 		"binary": true,
 		"redirect": {
 			"method": "GET",
-			"path": "/api/v1/polyIntersect/ANALYSIS_KEY/hello"
+			"path": "/api/v1/gfw-pro/polyIntersect/ANALYSIS_KEY/hello"
 		}
 	},
 	{
-		"path": "/v1/polyIntersect/ANALYSIS_KEY/hello",
+		"path": "/v1/gfw-pro/polyIntersect/ANALYSIS_KEY/hello",
 		"method": "POST",
 		"binary": true,
 		"redirect": {
 			"method": "POST",
-			"path": "/api/v1/polyIntersect/ANALYSIS_KEY/hello"
+			"path": "/api/v1/gfw-pro/polyIntersect/ANALYSIS_KEY/hello"
 		}
 	}]
 }
