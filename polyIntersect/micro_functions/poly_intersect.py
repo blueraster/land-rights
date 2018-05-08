@@ -1120,7 +1120,7 @@ def get_area(featureset, field=None):
 #     return area_pct
 
 
-def get_histo_loss_area(histograms, forest_density=30):
+def get_histo_loss_area(histograms):
     '''
     Returns the sum of tree cover loss for years 2001 through 2014
     '''
@@ -1131,15 +1131,17 @@ def get_histo_loss_area(histograms, forest_density=30):
     logging.info('FUNCTION get_histo_loss_area STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-    density_map = {10: 15, 15: 30, 20: 45, 25: 60,
-                   30: 75, 50: 90, 75: 105, 100: 120}
-    if forest_density not in density_map.keys():
-        raise ValueError('Forest density must be one of the following:\n' +
-                         '  10, 15, 20, 25, 30, 50, 75')
-    year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 135, 15)
-                    for i in range(14)}
-    histo_area_loss = {yr: 0.09 * sum([histograms[i] for i in indices])
-                       for yr, indices in year_indices.items()}
+#     density_map = {10: 15, 15: 30, 20: 45, 25: 60,
+#                    30: 75, 50: 90, 75: 105, 100: 120}
+#     if forest_density not in density_map.keys():
+#         raise ValueError('Forest density must be one of the following:\n' +
+#                          '  10, 15, 20, 25, 30, 50, 75')
+#     year_indices = {(i+2001): range(density_map[forest_density] + i + 1, 135, 15)
+#                     for i in range(14)}
+#     histo_area_loss = {yr: 0.09 * sum([histograms[i] for i in indices])
+#                        for yr, indices in year_indices.items()}
+    year_indices = {(i+2001): i+1 for i in range(13)}
+    histo_area_loss = {year: 0.09 * histograms[year_index] for year, year_index in year_indices.items()}
 
     logging.info('FUNCTION get_histo_loss_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histo_area_loss
@@ -1155,8 +1157,9 @@ def get_histo_pre2001_area(histograms):
     logging.info('FUNCTION get_histo_pre2001_area STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-    year_indices = range(15, 135, 15)
-    histo_area_loss = 0.09 * sum([histograms[i] for i in year_indices])
+#     year_indices = range(15, 135, 15)
+#     histo_area_loss = 0.09 * sum([histograms[i] for i in year_indices])
+    histo_area_loss = 0.09 * histograms[14]
 
     logging.info('FUNCTION get_histo_pre2001_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histo_area_loss
@@ -1171,9 +1174,11 @@ def get_histo_total_area(histograms):
     logging.info('FUNCTION get_histo_total_area STEP {} START'.format(FUNCTION_COUNT))
     t0 = time()
 
-    year_indices = {(i+2001): range(i, 135, 15) for i in range(14)}
-    histo_area_total = {yr: 0.09 * sum([histograms[i] for i in indices])
-                        for yr, indices in year_indices.items()}
+#     year_indices = {(i+2001): range(i, 135, 15) for i in range(14)}
+#     histo_area_total = {yr: 0.09 * sum([histograms[i] for i in indices])
+#                         for yr, indices in year_indices.items()}
+    year_indices = {(i+2000): i for i in range(15)}
+    histo_area_total = {year: 0.09 * histograms[year_index] for year, year_index in year_indices.items()}
 
     logging.info('FUNCTION get_histo_total_area STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return histo_area_total
