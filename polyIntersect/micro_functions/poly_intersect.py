@@ -28,13 +28,14 @@ __all__ = ['json2ogr', 'ogr2json', 'dissolve', 'intersect', 'project_local',
            'get_feature_count', 'test_ip', 'esri_attributes', 'get_presence',
            'get_histo_loss_area', 'get_histo_pre2001_area', 'get_histo_total_area',
            'get_area_by_attributes', 'get_geom_by_attributes', 'pad_counts',
-           'vals_by_year', 'split', 'split_featureset', 'get_counts_by_year',
+           'vals_by_year', 'split', 'split_features', 'get_counts_by_year',
            'get_count_by_year', 'combine_counts_by_year', 'get_ok']
 
 
 HA_CONVERSION = 10000
-COMPLEXITY_THRESHOLD = 1.2
-REQUEST_THRESHOLD = 20
+FEATURE_GEOG_THRESHOLD = 1.2
+REQUEST_GEOG_THRESHOLD = 20
+REQUEST_COORD_THRESHOLD = 20000
 FUNCTION_COUNT = 0
 
 
@@ -129,7 +130,6 @@ def bounds(f):
 
 def bbox(f):
     tups = mapping(box(*bounds(f)))['coordinates']
-    # raise ValueError((bounds(f), tups))
     return [[list(tup) for tup in tups[0]]]
 
 
@@ -454,7 +454,7 @@ def get_split_boxes(f):
     and Right/Bottom) for intersecting with the geometry
     '''
     x1, y1, x2, y2 = bounds(f)
-    if (x2 - x1 > COMPLEXITY_THRESHOLD or y2 - y1 > COMPLEXITY_THRESHOLD):
+    if (x2 - x1 > FEATURE_GEOG_THRESHOLD or y2 - y1 > FEATURE_GEOG_THRESHOLD):
         if x2 - x1 > y2 - y1:
             x_split = x1 + (x2 - x1) / 2
             return [box(x1, y1, x_split, y2), box(x_split, y1, x2, y2)]
@@ -532,6 +532,29 @@ def split(featureset):
 
     logging.info('FUNCTION split STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
     return new_featureset
+
+
+def get_centroid_bbox(features):
+    x, y = zip([f['properties']['centroid'] for f in features])
+    return min(x), min(y), max(x), max(y)
+
+
+def split_features(featureset):
+    '''
+    Sort features into groups where all features have centroids clustered
+    within the geographic size limit and the total number of coordinates is
+    beneath the coordinate length limit
+    '''
+    global FUNCTION_COUNT
+    FUNCTION_COUNT += 1
+    logging.info('FUNCTION split_features STEP {} START'.format(FUNCTION_COUNT))
+    t0 = time()
+
+    feature_groups = [featureset['features']]
+    
+
+    logging.info('FUNCTION split_features STEP {} DONE - {} SECONDS'.format(FUNCTION_COUNT, time()-t0))
+    return
 
 
 def condense_properties(properties):
@@ -733,7 +756,6 @@ def project_local(featureset):
     name = 'urn:ogc:def:uom:EPSG::9102'
 
     # get cumulative centroid of all features
-    # x, y = 0, 0
     new_features = []
     for f in featureset['features']:
         if isinstance(f['geometry'], GeometryCollection):
@@ -742,8 +764,6 @@ def project_local(featureset):
         else:
             x = f['geometry'].centroid.x
             y = f['geometry'].centroid.y
-    # x = x / len(featureset['features']) if featureset['features'] else 0
-    # y = y / len(featureset['features']) if featureset['features'] else 0
 
         # define local projection
         proj4 = '+proj=aeqd +lat_0={} +lon_0={} +x_0=0 +y_0=0 +datum=WGS84 \

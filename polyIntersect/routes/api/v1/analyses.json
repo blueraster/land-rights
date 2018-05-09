@@ -75,9 +75,10 @@
 	        "aoi-dissolved": ["dissolve", "aoi"],
 	        "dissolved-geom": ["split", "aoi-dissolved"],
 	        "aoi-prj": ["project_local", "dissolved-geom"],
-	        "aoi-area": ["get_area", "aoi-prj"]
+	        "aoi-area": ["get_area", "aoi-prj"],
+	        "dissolved-geoms": ["split_features", "dissolved-geom"]
 		},
-		"outputs": ["dissolved-geom", "aoi-area"]
+		"outputs": ["dissolved-geoms", "aoi-area"]
 	},
 	"area-and-geom-buffered": {
 		"graph": {
