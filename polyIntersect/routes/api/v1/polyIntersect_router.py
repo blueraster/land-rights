@@ -67,7 +67,7 @@ def compute(graph, outputs):
 
 
 def execute_model(analysis, dataset, user_json, geojson2, distance):
-    logging.info('START OF NEW RUN')
+#     logging.info('START OF NEW RUN')
     t0 = time()
 
     # read config files
@@ -162,7 +162,7 @@ def execute_model(analysis, dataset, user_json, geojson2, distance):
     response = jsonify(data)
     response.status_code = 200
 
-    logging.info('END OF RUN')
+#     logging.info('END OF RUN')
     return response
 
 
