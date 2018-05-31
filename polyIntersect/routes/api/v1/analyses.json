@@ -77,7 +77,7 @@
 	        "aoi-prj": ["project_local", "dissolved-geom"],
 	        "aoi-area": ["get_area", "aoi-prj"]
 		},
-		"outputs": ["dissolved-geoms", "aoi-area"]
+		"outputs": ["dissolved-geom", "aoi-area"]
 	},
 	"area-and-geom-buffered": {
 		"graph": {
